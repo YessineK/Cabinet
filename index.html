@@ -10,925 +10,513 @@
 <meta name="theme-color" content="#0a3d6b">
 <title>Cabinet Dr Jallouli Mohamed</title>
 <link rel="manifest" href="manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<!-- PDF-LIB pour générer PDF côté client -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-
 <style>
-:root {
-  --navy:    #0a3d6b;
-  --navy2:   #0d4f8a;
-  --gold:    #c9a84c;
-  --gold2:   #e8c96a;
-  --white:   #f8f6f1;
-  --card:    #ffffff;
-  --muted:   #8a9bb0;
-  --danger:  #c0392b;
-  --success: #1a7a4a;
-  --border:  #dde4ee;
-  --shadow:  0 4px 24px rgba(10,61,107,0.13);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--white);
-  color: #1a2535;
-  min-height: 100vh;
-  overscroll-behavior: none;
-}
-
-/* ── HEADER ── */
-.header {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
-  padding: 20px 20px 16px;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 16px rgba(10,61,107,0.3);
-}
-.header-top { display: flex; align-items: center; justify-content: space-between; }
-.header h1 { font-family: 'Playfair Display', serif; color: var(--white); font-size: 1.15rem; line-height: 1.3; }
-.header h1 span { color: var(--gold2); display: block; font-size: 0.8rem; font-family: 'DM Sans', sans-serif; font-weight: 300; letter-spacing: 0.05em; margin-top: 2px; }
-.header-icon { width: 44px; height: 44px; background: rgba(255,255,255,0.12); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-
-/* ── AUTH ── */
-#auth-screen {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: calc(100vh - 80px); padding: 32px 24px; text-align: center;
-}
-.auth-card {
-  background: var(--card); border-radius: 20px; padding: 36px 28px;
-  box-shadow: var(--shadow); max-width: 360px; width: 100%;
-}
-.auth-card .logo { font-size: 3rem; margin-bottom: 16px; }
-.auth-card h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--navy); margin-bottom: 8px; }
-.auth-card p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 28px; }
-
-/* ── CONFIG ── */
-#config-screen {
-  display: none; padding: 24px 18px; max-width: 520px; margin: 0 auto;
-}
-.config-card {
-  background: var(--card); border-radius: 18px; padding: 24px;
-  box-shadow: var(--shadow); margin-bottom: 16px;
-}
-.config-card h3 { font-family: 'Playfair Display', serif; color: var(--navy); font-size: 1.1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-
-/* ── MAIN APP ── */
-#app-screen { display: none; padding: 18px 16px; max-width: 520px; margin: 0 auto; }
-
-/* ── TABS ── */
-.tabs { display: flex; background: var(--card); border-radius: 14px; padding: 4px; margin-bottom: 18px; box-shadow: var(--shadow); }
-.tab {
-  flex: 1; padding: 10px 6px; border-radius: 10px; border: none;
-  background: transparent; font-family: 'DM Sans', sans-serif;
-  font-size: 0.82rem; font-weight: 500; color: var(--muted);
-  cursor: pointer; transition: all 0.2s; text-align: center;
-}
-.tab.active { background: var(--navy); color: white; box-shadow: 0 2px 8px rgba(10,61,107,0.25); }
-
-/* ── CARD ── */
-.card {
-  background: var(--card); border-radius: 18px; padding: 20px;
-  box-shadow: var(--shadow); margin-bottom: 16px;
-}
-.card-title {
-  font-family: 'Playfair Display', serif; font-size: 1rem;
-  color: var(--navy); margin-bottom: 16px;
-  display: flex; align-items: center; gap: 8px; padding-bottom: 12px;
-  border-bottom: 2px solid var(--border);
-}
-
-/* ── INPUTS ── */
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--navy); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
-.field input, .field select {
-  width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
-  border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
-  background: #fafbfd; color: #1a2535; outline: none; transition: border 0.2s;
-}
-.field input:focus, .field select:focus { border-color: var(--navy2); background: white; }
-
-/* ── BOUTONS ── */
-.btn {
-  width: 100%; padding: 14px; border: none; border-radius: 12px;
-  font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
-  cursor: pointer; transition: all 0.2s; display: flex; align-items: center;
-  justify-content: center; gap: 8px; margin-bottom: 10px;
-}
-.btn-primary { background: var(--navy); color: white; }
-.btn-primary:active { background: var(--navy2); transform: scale(0.98); }
-.btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: var(--navy); }
-.btn-gold:active { transform: scale(0.98); }
-.btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
-.btn-success { background: var(--success); color: white; }
-.btn-success:active { transform: scale(0.98); }
-.btn-danger-sm {
-  background: #fde8e8; color: var(--danger); border: none;
-  border-radius: 8px; padding: 4px 10px; font-size: 0.75rem;
-  cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600;
-}
-.btn-sm {
-  padding: 6px 12px; font-size: 0.78rem; border-radius: 8px; margin-bottom: 0;
-  width: auto;
-}
-.btn-google {
-  background: white; color: #1a2535; border: 1.5px solid var(--border);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.btn-google:active { transform: scale(0.98); }
-
-/* ── FILE LIST ── */
-.file-list { margin: 10px 0; }
-.file-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; background: #f7f9fc;
-  border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border);
-}
-.file-item .file-thumb {
-  width: 42px; height: 42px; border-radius: 8px; object-fit: cover;
-  background: #eef2f8; flex-shrink: 0; display: flex; align-items: center;
-  justify-content: center; font-size: 1.4rem; overflow: hidden;
-}
-.file-item .file-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.file-item .file-info { flex: 1; min-width: 0; }
-.file-item .file-name { font-size: 0.82rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.file-item .file-size { font-size: 0.72rem; color: var(--muted); }
-.file-controls { display: flex; gap: 4px; }
-.btn-icon {
-  width: 28px; height: 28px; border-radius: 7px; border: none;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.8rem; cursor: pointer; background: #e8eef6; color: var(--navy);
-}
-.btn-icon:active { transform: scale(0.9); }
-.btn-icon.danger { background: #fde8e8; color: var(--danger); }
-
-/* ── CAPTURE ZONE ── */
-.capture-zone {
-  border: 2px dashed var(--border); border-radius: 14px;
-  padding: 24px 16px; text-align: center; margin-bottom: 12px;
-  background: #fafbfd; cursor: pointer; transition: all 0.2s;
-}
-.capture-zone:active { background: #eef3fb; border-color: var(--navy); }
-.capture-zone .icon { font-size: 2.2rem; margin-bottom: 8px; }
-.capture-zone p { font-size: 0.85rem; color: var(--muted); }
-.capture-zone strong { color: var(--navy); }
-
-/* ── PROGRESS ── */
-.progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 12px 0; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--navy), var(--gold)); border-radius: 3px; transition: width 0.4s; }
-
-/* ── STATUS ── */
-.status-msg {
-  padding: 12px 14px; border-radius: 10px; font-size: 0.85rem;
-  font-weight: 500; margin-top: 10px; display: none;
-}
-.status-msg.success { background: #e6f4ed; color: var(--success); display: block; }
-.status-msg.error   { background: #fde8e8; color: var(--danger); display: block; }
-.status-msg.loading { background: #e8eef6; color: var(--navy); display: block; }
-
-/* ── DRIVE FILES ── */
-.drive-file {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
-  margin-bottom: 8px; background: #fafbfd; cursor: pointer;
-  transition: all 0.2s;
-}
-.drive-file:active { background: #eef3fb; }
-.drive-file .df-icon { font-size: 1.6rem; }
-.drive-file .df-info { flex: 1; min-width: 0; }
-.drive-file .df-name { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.drive-file .df-date { font-size: 0.74rem; color: var(--muted); }
-.drive-file .df-open { font-size: 0.75rem; color: var(--navy); font-weight: 600; }
-
-/* ── BADGE ── */
-.badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: #e8eef6; color: var(--navy); border-radius: 20px;
-  padding: 3px 10px; font-size: 0.75rem; font-weight: 600;
-}
-.badge.green { background: #e6f4ed; color: var(--success); }
-
-/* ── USER BAR ── */
-.user-bar {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; background: rgba(255,255,255,0.1);
-  border-radius: 10px; margin-top: 10px;
-}
-.user-bar img { width: 30px; height: 30px; border-radius: 50%; }
-.user-bar .user-name { font-size: 0.8rem; color: var(--white); font-weight: 500; flex: 1; }
-.user-bar .btn-signout {
-  background: rgba(255,255,255,0.15); color: white; border: none;
-  border-radius: 7px; padding: 4px 10px; font-size: 0.72rem;
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
-}
-
-/* ── FOOTER ── */
-.footer {
-  text-align: center; padding: 20px;
-  font-size: 0.75rem; color: var(--muted);
-  border-top: 1px solid var(--border); margin-top: 10px;
-}
-.footer strong { color: var(--navy); }
-
-/* ── MODAL ── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  display: none; align-items: flex-end; justify-content: center;
-  z-index: 200; padding: 0;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: white; border-radius: 24px 24px 0 0;
-  padding: 24px 20px 40px; width: 100%; max-width: 520px;
-  max-height: 80vh; overflow-y: auto;
-}
-.modal h3 { font-family: 'Playfair Display', serif; color: var(--navy); margin-bottom: 16px; }
-
-/* ── SPINNER ── */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
-
-input[type="file"] { display: none; }
+:root{--navy:#0a3d6b;--navy2:#0d4f8a;--gold:#c9a84c;--white:#f8f6f1;--card:#ffffff;--muted:#8a9bb0;--danger:#c0392b;--success:#1a7a4a;--border:#dde4ee;--orange:#e67e00}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:#1a2535;min-height:100vh}
+.header{background:var(--navy);padding:14px 18px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(10,61,107,.3)}
+.header h1{color:#fff;font-size:1.05rem;font-weight:600;line-height:1.3}
+.header h1 span{color:#b3d4ff;display:block;font-size:.75rem;font-weight:300;margin-top:2px}
+.config-bar{background:#dce8f7;padding:8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.config-bar-text{font-size:.78rem;color:var(--navy);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-cfg{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.main{padding:14px 14px 30px;max-width:520px;margin:0 auto}
+.tabs{display:flex;background:var(--card);border-radius:12px;padding:3px;margin-bottom:14px;box-shadow:0 2px 8px rgba(10,61,107,.1)}
+.tab{flex:1;padding:9px 4px;border-radius:9px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;text-align:center}
+.tab.active{background:var(--navy);color:#fff}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(10,61,107,.08);margin-bottom:14px;border:.5px solid var(--border)}
+.card-title{font-size:.95rem;font-weight:600;color:var(--navy);margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px solid var(--border)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.73rem;font-weight:600;color:var(--navy);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;background:#fafbfd;color:#1a2535;outline:none;transition:border .2s}
+.field input:focus{border-color:var(--navy2);background:#fff}
+.btn{width:100%;padding:13px;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:9px}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}
+.btn-success{background:var(--success);color:#fff}
+.btn-sm{padding:7px 13px;font-size:.78rem;border-radius:8px;margin-bottom:0;width:auto}
+.capture-zone{border:2px dashed var(--border);border-radius:12px;padding:20px 14px;text-align:center;margin-bottom:10px;background:#fafbfd;cursor:pointer;transition:all .2s}
+.capture-zone:active{background:#eef3fb;border-color:var(--navy)}
+.capture-zone .icon{font-size:2rem;margin-bottom:6px}
+.capture-zone p{font-size:.82rem;color:var(--muted)}
+.capture-zone strong{color:var(--navy)}
+.file-list{margin:8px 0}
+.file-item{display:flex;align-items:center;gap:8px;padding:9px 10px;background:#f7f9fc;border-radius:9px;margin-bottom:5px;border:.5px solid var(--border)}
+.file-thumb{width:38px;height:38px;border-radius:7px;object-fit:cover;background:#eef2f8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;overflow:hidden}
+.file-thumb img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a2535}
+.file-size{font-size:.7rem;color:var(--muted)}
+.file-controls{display:flex;gap:3px}
+.btn-icon{width:28px;height:28px;border-radius:7px;border:none;display:flex;align-items:center;justify-content:center;font-size:.78rem;cursor:pointer;transition:transform .15s}
+.btn-icon:active{transform:scale(.88)}
+.btn-icon.up,.btn-icon.dn{background:#e8eef6;color:var(--navy)}
+.btn-icon.del{background:#fde8e8;color:var(--danger)}
+.progress-wrap{display:none;margin:10px 0}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--gold));border-radius:3px;transition:width .4s;width:0%}
+.progress-text{font-size:.75rem;color:var(--muted);text-align:center;margin-top:5px}
+.status{padding:10px 12px;border-radius:9px;font-size:.82rem;font-weight:500;margin-top:8px;display:none}
+.status.ok{background:#e6f4ed;color:var(--success);display:block}
+.status.err{background:#fde8e8;color:var(--danger);display:block}
+.status.loading{background:#e8eef6;color:var(--navy);display:block}
+.pdf-selected{background:#e8eef6;color:var(--navy);border-radius:9px;padding:9px 12px;font-size:.82rem;font-weight:600;margin:8px 0;display:none}
+.drive-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:#fafbfd;border-radius:11px;margin-bottom:7px;border:.5px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none}
+.drive-item:active{background:#eef3fb}
+.drive-icon{font-size:1.5rem;flex-shrink:0}
+.drive-info{flex:1;min-width:0}
+.drive-name{font-size:.83rem;font-weight:600;color:#1a2535;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drive-date{font-size:.72rem;color:var(--muted)}
+.drive-open{font-size:.72rem;color:var(--navy);font-weight:600;flex-shrink:0}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:200}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:22px 22px 0 0;padding:20px 16px 36px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:14px}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+input[type="file"]{display:none}
+.footer{text-align:center;padding:16px;font-size:.73rem;color:var(--muted);border-top:.5px solid var(--border);margin-top:6px}
+.footer strong{color:var(--navy)}
+.cfg-screen{display:none;padding:16px 14px;max-width:520px;margin:0 auto}
+.cfg-card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 2px 12px rgba(10,61,107,.08);border:.5px solid var(--border);margin-bottom:14px}
+.cfg-card h3{font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:14px}
+.howto{background:#fff8e6;border:.5px solid var(--gold);border-radius:10px;padding:12px;margin-bottom:14px;font-size:.8rem;line-height:1.7;color:#5a4000}
+.howto a{color:var(--navy)}
+.badge-cloud{display:inline-block;background:#e6f4ed;color:var(--success);border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:600;margin-left:6px}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
-  <div class="header-top">
-    <h1>Cabinet Dr Jallouli<span>Gestion Dossiers Patients</span></h1>
-    <div class="header-icon">🏥</div>
-  </div>
-  <div id="user-bar-container"></div>
-</div>
-
-<!-- ══════════════════ ÉCRAN AUTH ══════════════════ -->
-<div id="auth-screen">
-  <div class="auth-card">
-    <div class="logo">🔐</div>
-    <h2>Connexion requise</h2>
-    <p>Connectez-vous avec votre compte Google pour accéder aux dossiers patients stockés sur Google Drive.</p>
-    <button class="btn btn-google" onclick="signIn()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Se connecter avec Google
-    </button>
-    <div id="auth-status" class="status-msg"></div>
-
-    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-      <p style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">⚙️ Première utilisation ? Configurez d'abord votre Client ID Google.</p>
-      <button class="btn btn-outline btn-sm" style="width:100%" onclick="showConfig()">⚙️ Configuration API Google</button>
-    </div>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <h1>🏥 Cabinet Dr Jallouli<span>Gestion Dossiers Patients</span></h1>
+    <div style="font-size:1.3rem">📋</div>
   </div>
 </div>
 
-<!-- ══════════════════ ÉCRAN CONFIG ══════════════════ -->
-<div id="config-screen">
-  <div class="config-card">
-    <h3>⚙️ Configuration Google API</h3>
+<div class="config-bar">
+  <span class="config-bar-text" id="cloud-status">⚙️ Cloudinary non configuré</span>
+  <button class="btn-cfg" onclick="showCfg()">⚙️ Configurer</button>
+</div>
 
-    <div style="background:#fff8e6; border:1px solid var(--gold); border-radius:10px; padding:14px; margin-bottom:18px; font-size:0.82rem; line-height:1.7; color:#5a4000;">
-      <strong>📋 Étapes pour obtenir votre Client ID :</strong><br>
-      1. Allez sur <a href="https://console.cloud.google.com" target="_blank" style="color:var(--navy)">console.cloud.google.com</a><br>
-      2. Créez un projet → <strong>APIs & Services</strong><br>
-      3. Activez <strong>Google Drive API</strong> et <strong>Google Picker API</strong><br>
-      4. Créez des identifiants → <strong>ID client OAuth 2.0</strong><br>
-      5. Type : <strong>Application Web</strong><br>
-      6. Origines autorisées : l'URL de votre app<br>
-      7. Copiez le <strong>Client ID</strong> et <strong>API Key</strong> ci-dessous
+<!-- ══ CONFIG ══ -->
+<div class="cfg-screen" id="cfg-screen">
+  <div class="cfg-card">
+    <h3>☁️ Configuration Cloudinary <span class="badge-cloud">Gratuit</span></h3>
+
+    <div class="howto">
+      <strong>📋 3 étapes pour obtenir vos clés (5 minutes) :</strong><br>
+      1. Allez sur <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> → <strong>Sign Up Free</strong><br>
+      2. Dans le tableau de bord, copiez : <strong>Cloud Name</strong>, <strong>API Key</strong>, <strong>API Secret</strong><br>
+      3. Allez dans <strong>Settings → Upload → Add upload preset</strong><br>
+         → Mode : <strong>Unsigned</strong> → Sauvegardez → copiez le nom du preset
     </div>
 
     <div class="field">
-      <label>Client ID Google OAuth</label>
-      <input type="text" id="cfg-client-id" placeholder="xxxx.apps.googleusercontent.com">
+      <label>Cloud Name</label>
+      <input type="text" id="cfg-cloud" placeholder="ex: dxyz1234">
     </div>
     <div class="field">
-      <label>API Key Google</label>
-      <input type="text" id="cfg-api-key" placeholder="AIzaSy...">
+      <label>Upload Preset (Unsigned)</label>
+      <input type="text" id="cfg-preset" placeholder="ex: patients_preset">
     </div>
     <div class="field">
-      <label>Nom du dossier Drive</label>
-      <input type="text" id="cfg-folder-name" value="Patients_DrJallouli" placeholder="Patients_DrJallouli">
+      <label>API Key (pour consulter les dossiers)</label>
+      <input type="text" id="cfg-apikey" placeholder="ex: 123456789012345" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>API Secret</label>
+      <input type="password" id="cfg-apisecret" placeholder="aBcDeFgHiJkL..." autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Nom du dossier Cloudinary</label>
+      <input type="text" id="cfg-folder" placeholder="Patients_DrJallouli" value="Patients_DrJallouli">
     </div>
 
-    <button class="btn btn-primary" onclick="saveConfig()">💾 Enregistrer la configuration</button>
-    <button class="btn btn-outline" onclick="showAuth()">← Retour</button>
-    <div id="config-status" class="status-msg"></div>
+    <button class="btn btn-primary" onclick="saveCfg()">💾 Enregistrer</button>
+    <button class="btn btn-outline" onclick="showApp()">← Retour</button>
+    <div class="status" id="cfg-status"></div>
   </div>
 </div>
 
-<!-- ══════════════════ APP PRINCIPALE ══════════════════ -->
-<div id="app-screen">
+<!-- ══ APP ══ -->
+<div class="main" id="app-main">
 
-  <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab(0, this)">📄 Nouveau PDF</button>
-    <button class="tab" onclick="switchTab(1, this)">➕ Ajouter docs</button>
-    <button class="tab" onclick="switchTab(2, this)">📁 Dossiers</button>
+    <button class="tab active" onclick="switchTab(0,this)">📄 Nouveau PDF</button>
+    <button class="tab" onclick="switchTab(1,this)">➕ Ajouter</button>
+    <button class="tab" onclick="switchTab(2,this)">📁 Dossiers</button>
   </div>
 
-  <!-- ── TAB 0 : Nouveau PDF ── -->
-  <div class="tab-content" id="tab-0">
+  <!-- TAB 0 -->
+  <div id="tab-0">
     <div class="card">
-      <div class="card-title">📄 Créer un nouveau dossier patient</div>
-
-      <div class="field">
-        <label>Nom du patient</label>
-        <input type="text" id="nom-patient" placeholder="Ex: Ben Ali Ahmed" autocomplete="off">
-      </div>
-      <div class="field">
-        <label>Numéro de dossier</label>
-        <input type="text" id="num-dossier" placeholder="Ex: 2024-001" autocomplete="off">
-      </div>
+      <div class="card-title">📄 Nouveau dossier patient</div>
+      <div class="field"><label>Nom du patient</label><input type="text" id="nom" placeholder="Ex: Ben Ali Ahmed" autocomplete="off"></div>
+      <div class="field"><label>Numéro de dossier</label><input type="text" id="num" placeholder="Ex: 2024-001" autocomplete="off"></div>
     </div>
-
     <div class="card">
       <div class="card-title">📸 Fichiers à inclure</div>
-
-      <!-- Capture zone -->
-      <div class="capture-zone" onclick="document.getElementById('file-input-1').click()">
+      <div class="capture-zone" onclick="document.getElementById('fi1').click()">
         <div class="icon">📷</div>
         <p><strong>Appuyer pour prendre une photo</strong><br>ou importer un fichier</p>
       </div>
-      <input type="file" id="file-input-1" multiple accept="image/*,application/pdf,.doc,.docx,.txt" capture="environment" onchange="addFiles(this.files, 1)">
-
-      <div class="file-list" id="file-list-1"></div>
-
-      <div id="progress-1" style="display:none">
-        <div class="progress-bar"><div class="progress-fill" id="pbar-1" style="width:0%"></div></div>
-        <p style="font-size:0.8rem; color:var(--muted); text-align:center" id="progress-text-1"></p>
-      </div>
-
-      <button class="btn btn-gold" onclick="createPDF()" id="btn-create">
-        ✅ Créer PDF et envoyer sur Drive
-      </button>
-      <div id="status-1" class="status-msg"></div>
+      <input type="file" id="fi1" multiple accept="image/*,application/pdf,.doc,.docx,.txt" onchange="addFiles(this.files,1)">
+      <div class="file-list" id="fl1"></div>
+      <div class="progress-wrap" id="pw1"><div class="progress-bar"><div class="progress-fill" id="pf1"></div></div><div class="progress-text" id="pt1"></div></div>
+      <button class="btn btn-gold" id="btn-create" onclick="createPDF()">✅ Créer PDF et envoyer</button>
+      <div class="status" id="s1"></div>
     </div>
   </div>
 
-  <!-- ── TAB 1 : Ajouter docs ── -->
-  <div class="tab-content" id="tab-1" style="display:none">
+  <!-- TAB 1 -->
+  <div id="tab-1" style="display:none">
     <div class="card">
-      <div class="card-title">➕ Ajouter des documents à un dossier existant</div>
-      <p style="font-size:0.83rem; color:var(--muted); margin-bottom:14px;">Sélectionnez le PDF du patient sur Drive, puis ajoutez les nouvelles photos.</p>
-
-      <button class="btn btn-outline" onclick="pickPDFFromDrive()">
-        ☁️ Choisir un PDF sur Google Drive
-      </button>
-      <div id="selected-pdf-info" style="display:none; margin:10px 0; padding:10px 14px; background:#e8eef6; border-radius:10px; font-size:0.83rem; color:var(--navy); font-weight:600;"></div>
+      <div class="card-title">➕ Ajouter à un dossier existant</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Choisissez le PDF du patient depuis Cloudinary, puis ajoutez de nouveaux fichiers.</p>
+      <button class="btn btn-outline" onclick="loadPDFList()">☁️ Choisir un PDF existant</button>
+      <div class="pdf-selected" id="pdf-sel"></div>
     </div>
-
-    <div class="card" id="add-files-card" style="display:none">
+    <div class="card" id="add-card" style="display:none">
       <div class="card-title">📸 Nouveaux fichiers</div>
-      <div class="capture-zone" onclick="document.getElementById('file-input-2').click()">
+      <div class="capture-zone" onclick="document.getElementById('fi2').click()">
         <div class="icon">📷</div>
         <p><strong>Appuyer pour ajouter des fichiers</strong></p>
       </div>
-      <input type="file" id="file-input-2" multiple accept="image/*,application/pdf,.doc,.docx,.txt" capture="environment" onchange="addFiles(this.files, 2)">
-      <div class="file-list" id="file-list-2"></div>
-
-      <div id="progress-2" style="display:none">
-        <div class="progress-bar"><div class="progress-fill" id="pbar-2" style="width:0%"></div></div>
-        <p style="font-size:0.8rem; color:var(--muted); text-align:center" id="progress-text-2"></p>
-      </div>
-
-      <button class="btn btn-gold" onclick="appendToPDF()">
-        ✅ Ajouter et mettre à jour sur Drive
-      </button>
-      <div id="status-2" class="status-msg"></div>
+      <input type="file" id="fi2" multiple accept="image/*,application/pdf,.doc,.docx,.txt" onchange="addFiles(this.files,2)">
+      <div class="file-list" id="fl2"></div>
+      <div class="progress-wrap" id="pw2"><div class="progress-bar"><div class="progress-fill" id="pf2"></div></div><div class="progress-text" id="pt2"></div></div>
+      <button class="btn btn-gold" onclick="appendPDF()">✅ Ajouter et mettre à jour</button>
+      <div class="status" id="s2"></div>
     </div>
   </div>
 
-  <!-- ── TAB 2 : Dossiers Drive ── -->
-  <div class="tab-content" id="tab-2" style="display:none">
+  <!-- TAB 2 -->
+  <div id="tab-2" style="display:none">
     <div class="card">
-      <div class="card-title">📁 Dossiers patients sur Drive</div>
-      <button class="btn btn-primary btn-sm" style="width:auto; margin-bottom:14px" onclick="loadDriveFiles()">
-        🔄 Actualiser
-      </button>
-      <div id="drive-files-list">
-        <p style="color:var(--muted); font-size:0.85rem; text-align:center; padding:20px">Appuyez sur Actualiser pour charger les dossiers.</p>
-      </div>
+      <div class="card-title">📁 Dossiers patients</div>
+      <button class="btn btn-primary btn-sm" style="width:auto;margin-bottom:12px" onclick="loadDossiers()">🔄 Actualiser</button>
+      <div id="dossiers-list"><p style="color:var(--muted);font-size:.83rem;text-align:center;padding:18px">Appuyez sur Actualiser.</p></div>
     </div>
   </div>
 
-  <div class="footer">
-    <strong>Cabinet Dr Jallouli Mohamed</strong><br>
-    Gestion Dossiers Patients v2.0
-  </div>
+  <div class="footer"><strong>Cabinet Dr Jallouli Mohamed</strong><br>Gestion Dossiers Patients v3.0 • Cloudinary</div>
 </div>
 
-<!-- MODAL PDF VIEWER -->
-<div class="modal-overlay" id="pdf-modal">
+<!-- MODAL liste PDF -->
+<div class="modal-overlay" id="modal-pdf">
   <div class="modal">
-    <h3>📄 Dossier patient</h3>
-    <div id="modal-content"></div>
-    <button class="btn btn-outline" style="margin-top:16px" onclick="closeModal()">✕ Fermer</button>
+    <h3>☁️ Choisir un dossier patient</h3>
+    <div id="modal-pdf-list"></div>
+    <button class="btn btn-outline" style="margin-top:12px" onclick="closeModal('modal-pdf')">✕ Fermer</button>
   </div>
 </div>
-
-<!-- Google APIs -->
-<script src="https://accounts.google.com/gsi/client" async></script>
 
 <script>
-// ══════════════════════════════════════════════
-//  CONFIG & STATE
-// ══════════════════════════════════════════════
-let CONFIG = {
-  clientId:   localStorage.getItem('gClientId')  || '',
-  apiKey:     localStorage.getItem('gApiKey')    || '',
-  folderName: localStorage.getItem('gFolder')    || 'Patients_DrJallouli',
-  folderId:   localStorage.getItem('gFolderId')  || '',
-};
+const CFG_KEY = 'jallouli_cfg_v3';
 
-let accessToken = null;
-let userInfo    = null;
-let filesBox1   = [];   // {file, name, dataUrl}
-let filesBox2   = [];
-let selectedPDF = null; // {id, name}
-let tokenClient = null;
+let CFG = JSON.parse(localStorage.getItem(CFG_KEY) || '{}');
+let files1 = [], files2 = [];
+let selPDF  = null; // {publicId, url, name}
 
-// ══════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════
-window.onload = () => {
-  const saved = localStorage.getItem('gAccessToken');
-  if (saved && CONFIG.clientId) {
-    accessToken = saved;
-    loadUserInfo().then(ok => {
-      if (ok) showApp();
-      else    showAuth();
-    });
-  } else if (!CONFIG.clientId) {
-    showAuth();
+// ── INIT ──
+window.onload = () => { updateCfgBar(); loadCfgForm(); };
+
+function updateCfgBar() {
+  const el = document.getElementById('cloud-status');
+  if (CFG.cloud && CFG.preset) {
+    el.textContent = '✅ Cloudinary : ' + CFG.cloud + ' / ' + (CFG.folder||'Patients_DrJallouli');
   } else {
-    showAuth();
+    el.textContent = '⚠️ Cloudinary non configuré — appuyez sur ⚙️';
   }
-};
-
-// ══════════════════════════════════════════════
-//  SCREENS
-// ══════════════════════════════════════════════
-function showAuth()   { hide('config-screen'); hide('app-screen'); show('auth-screen'); }
-function showConfig() { hide('auth-screen');   hide('app-screen'); show('config-screen'); loadConfigForm(); }
-function showApp()    { hide('auth-screen');   hide('config-screen'); show('app-screen'); renderUserBar(); }
-function show(id)     { document.getElementById(id).style.display = 'flex'; if(id==='app-screen') document.getElementById(id).style.display='block'; }
-function hide(id)     { document.getElementById(id).style.display = 'none'; }
-
-function loadConfigForm() {
-  document.getElementById('cfg-client-id').value   = CONFIG.clientId;
-  document.getElementById('cfg-api-key').value     = CONFIG.apiKey;
-  document.getElementById('cfg-folder-name').value = CONFIG.folderName;
 }
 
-function saveConfig() {
-  CONFIG.clientId   = document.getElementById('cfg-client-id').value.trim();
-  CONFIG.apiKey     = document.getElementById('cfg-api-key').value.trim();
-  CONFIG.folderName = document.getElementById('cfg-folder-name').value.trim() || 'Patients_DrJallouli';
-  localStorage.setItem('gClientId',  CONFIG.clientId);
-  localStorage.setItem('gApiKey',    CONFIG.apiKey);
-  localStorage.setItem('gFolder',    CONFIG.folderName);
-  setStatus('config-status', 'success', '✔ Configuration enregistrée !');
-  setTimeout(showAuth, 1200);
+// ── CONFIG ──
+function showCfg() {
+  document.getElementById('cfg-screen').style.display = 'block';
+  document.getElementById('app-main').style.display  = 'none';
+}
+function showApp() {
+  document.getElementById('cfg-screen').style.display = 'none';
+  document.getElementById('app-main').style.display  = 'block';
+}
+function loadCfgForm() {
+  document.getElementById('cfg-cloud').value    = CFG.cloud     || '';
+  document.getElementById('cfg-preset').value   = CFG.preset    || '';
+  document.getElementById('cfg-apikey').value   = CFG.apikey    || '';
+  document.getElementById('cfg-apisecret').value= CFG.apisecret || '';
+  document.getElementById('cfg-folder').value   = CFG.folder    || 'Patients_DrJallouli';
+}
+function saveCfg() {
+  CFG.cloud     = document.getElementById('cfg-cloud').value.trim();
+  CFG.preset    = document.getElementById('cfg-preset').value.trim();
+  CFG.apikey    = document.getElementById('cfg-apikey').value.trim();
+  CFG.apisecret = document.getElementById('cfg-apisecret').value.trim();
+  CFG.folder    = document.getElementById('cfg-folder').value.trim() || 'Patients_DrJallouli';
+  if (!CFG.cloud || !CFG.preset) { setStatus('cfg-status','err','⚠️ Remplissez Cloud Name et Upload Preset.'); return; }
+  localStorage.setItem(CFG_KEY, JSON.stringify(CFG));
+  setStatus('cfg-status','ok','✔ Configuration enregistrée !');
+  updateCfgBar();
+  setTimeout(showApp, 1000);
 }
 
-// ══════════════════════════════════════════════
-//  AUTH GOOGLE
-// ══════════════════════════════════════════════
-function signIn() {
-  if (!CONFIG.clientId) {
-    setStatus('auth-status', 'error', '⚠️ Veuillez d\'abord configurer votre Client ID Google.');
-    return;
-  }
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CONFIG.clientId,
-    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
-    callback: async (resp) => {
-      if (resp.error) { setStatus('auth-status', 'error', '❌ Erreur : ' + resp.error); return; }
-      accessToken = resp.access_token;
-      localStorage.setItem('gAccessToken', accessToken);
-      setStatus('auth-status', 'loading', '⏳ Connexion...');
-      const ok = await loadUserInfo();
-      if (ok) { await ensureFolder(); showApp(); }
-    }
-  });
-  tokenClient.requestAccessToken();
+// ── TABS ──
+function switchTab(idx, el) {
+  [0,1,2].forEach(i => document.getElementById('tab-'+i).style.display = i===idx?'block':'none');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (idx===2) loadDossiers();
 }
 
-async function loadUserInfo() {
-  try {
-    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: 'Bearer ' + accessToken }
-    });
-    if (!r.ok) return false;
-    userInfo = await r.json();
-    return true;
-  } catch { return false; }
-}
-
-function signOut() {
-  accessToken = null; userInfo = null;
-  localStorage.removeItem('gAccessToken');
-  showAuth();
-}
-
-function renderUserBar() {
-  if (!userInfo) return;
-  document.getElementById('user-bar-container').innerHTML = `
-    <div class="user-bar">
-      ${userInfo.picture ? `<img src="${userInfo.picture}" alt="">` : '👤'}
-      <span class="user-name">${userInfo.name || userInfo.email}</span>
-      <button class="btn-signout" onclick="signOut()">Déconnexion</button>
-    </div>`;
-}
-
-// ══════════════════════════════════════════════
-//  GOOGLE DRIVE
-// ══════════════════════════════════════════════
-async function driveAPI(path, opts={}) {
-  const url = path.startsWith('http') ? path : 'https://www.googleapis.com/drive/v3/' + path;
-  const r = await fetch(url, {
-    ...opts,
-    headers: { Authorization: 'Bearer ' + accessToken, ...(opts.headers||{}) }
-  });
-  return r;
-}
-
-async function ensureFolder() {
-  if (CONFIG.folderId) return CONFIG.folderId;
-  // Chercher dossier existant
-  const q = encodeURIComponent(`name='${CONFIG.folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-  const r = await driveAPI(`files?q=${q}&fields=files(id,name)`);
-  const data = await r.json();
-  if (data.files && data.files.length > 0) {
-    CONFIG.folderId = data.files[0].id;
-  } else {
-    // Créer le dossier
-    const cr = await driveAPI('files', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: CONFIG.folderName, mimeType: 'application/vnd.google-apps.folder' })
-    });
-    const fd = await cr.json();
-    CONFIG.folderId = fd.id;
-  }
-  localStorage.setItem('gFolderId', CONFIG.folderId);
-  return CONFIG.folderId;
-}
-
-async function uploadPDF(pdfBytes, fileName) {
-  await ensureFolder();
-  const meta = JSON.stringify({ name: fileName, parents: [CONFIG.folderId], mimeType: 'application/pdf' });
-  const form = new FormData();
-  form.append('metadata', new Blob([meta], {type:'application/json'}));
-  form.append('file',     new Blob([pdfBytes], {type:'application/pdf'}));
-  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + accessToken },
-    body: form
-  });
-  return await r.json();
-}
-
-async function updatePDF(fileId, pdfBytes) {
-  const r = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-    method: 'PATCH',
-    headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/pdf' },
-    body: pdfBytes
-  });
-  return await r.json();
-}
-
-async function getPDFBytes(fileId) {
-  const r = await driveAPI(`files/${fileId}?alt=media`);
-  const buf = await r.arrayBuffer();
-  return new Uint8Array(buf);
-}
-
-async function loadDriveFiles() {
-  const el = document.getElementById('drive-files-list');
-  el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:16px">⏳ Chargement...</p>';
-  await ensureFolder();
-  const q = encodeURIComponent(`'${CONFIG.folderId}' in parents and mimeType='application/pdf' and trashed=false`);
-  const r = await driveAPI(`files?q=${q}&fields=files(id,name,modifiedTime,webViewLink)&orderBy=modifiedTime desc`);
-  const data = await r.json();
-  if (!data.files || data.files.length === 0) {
-    el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Aucun dossier patient pour l\'instant.</p>';
-    return;
-  }
-  el.innerHTML = data.files.map(f => {
-    const date = new Date(f.modifiedTime).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',year:'numeric'});
-    return `<div class="drive-file" onclick="window.open('${f.webViewLink}','_blank')">
-      <div class="df-icon">📄</div>
-      <div class="df-info">
-        <div class="df-name">${f.name}</div>
-        <div class="df-date">Modifié le ${date}</div>
-      </div>
-      <div class="df-open">Ouvrir ↗</div>
-    </div>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════════════
-//  FICHIERS & THUMBNAILS
-// ══════════════════════════════════════════════
+// ── FICHIERS ──
 function addFiles(fileList, box) {
-  const arr  = box === 1 ? filesBox1 : filesBox2;
-  const elId = 'file-list-' + box;
-  Array.from(fileList).forEach(file => {
-    const entry = { file, name: file.name, dataUrl: null };
+  const arr = box===1 ? files1 : files2;
+  const el  = document.getElementById('fl'+box);
+  Array.from(fileList).forEach(f => {
+    const entry = {file:f, name:f.name, dataUrl:null};
     arr.push(entry);
-    const idx = arr.length - 1;
-    const item = document.createElement('div');
-    item.className = 'file-item';
-    item.id = `fi-${box}-${idx}`;
-
-    const thumb = document.createElement('div');
-    thumb.className = 'file-thumb';
-
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        entry.dataUrl = e.target.result;
-        thumb.innerHTML = `<img src="${e.target.result}">`;
-      };
-      reader.readAsDataURL(file);
-      thumb.textContent = '🖼';
-    } else if (file.type === 'application/pdf') {
-      thumb.textContent = '📄';
-    } else {
-      thumb.textContent = '📎';
-    }
-
-    const size = file.size < 1024*1024
-      ? (file.size/1024).toFixed(0) + ' Ko'
-      : (file.size/1024/1024).toFixed(1) + ' Mo';
-
-    item.innerHTML = `
-      <div class="file-thumb" id="thumb-${box}-${idx}"></div>
-      <div class="file-info">
-        <div class="file-name">${file.name}</div>
-        <div class="file-size">${size}</div>
-      </div>
-      <div class="file-controls">
-        <button class="btn-icon" onclick="moveFile(${box},${idx},-1)" title="Monter">▲</button>
-        <button class="btn-icon" onclick="moveFile(${box},${idx},+1)" title="Descendre">▼</button>
-        <button class="btn-icon danger" onclick="removeFile(${box},${idx})" title="Supprimer">✕</button>
-      </div>`;
-
-    document.getElementById(elId).appendChild(item);
-    // Set thumb after render
-    document.getElementById(`thumb-${box}-${idx}`).appendChild(thumb);
-
-    if (file.type.startsWith('image/')) {
-      const reader2 = new FileReader();
-      reader2.onload = e => { entry.dataUrl = e.target.result; thumb.innerHTML = `<img src="${e.target.result}">`; };
-      reader2.readAsDataURL(file);
-    }
+    renderFileItem(el, arr, arr.length-1, box);
   });
 }
 
-function removeFile(box, idx) {
-  const arr = box === 1 ? filesBox1 : filesBox2;
-  arr.splice(idx, 1);
-  refreshFileList(box);
-}
-
-function moveFile(box, idx, dir) {
-  const arr = box === 1 ? filesBox1 : filesBox2;
-  const j = idx + dir;
-  if (j < 0 || j >= arr.length) return;
-  [arr[idx], arr[j]] = [arr[j], arr[idx]];
-  refreshFileList(box);
-}
-
-function refreshFileList(box) {
-  const arr  = box === 1 ? filesBox1 : filesBox2;
-  const el   = document.getElementById('file-list-' + box);
-  el.innerHTML = '';
-  const tmp = [...arr];
-  if (box === 1) filesBox1 = []; else filesBox2 = [];
-  tmp.forEach(entry => addFileEntry(entry, box));
-}
-
-function addFileEntry(entry, box) {
-  const arr  = box === 1 ? filesBox1 : filesBox2;
-  arr.push(entry);
-  const idx  = arr.length - 1;
-  const el   = document.getElementById('file-list-' + box);
-  const size = entry.file.size < 1024*1024
-    ? (entry.file.size/1024).toFixed(0) + ' Ko'
-    : (entry.file.size/1024/1024).toFixed(1) + ' Mo';
-  const thumbHtml = entry.dataUrl ? `<img src="${entry.dataUrl}">` :
-    entry.file.type === 'application/pdf' ? '📄' : '📎';
-  const item = document.createElement('div');
-  item.className = 'file-item';
-  item.innerHTML = `
-    <div class="file-thumb">${thumbHtml}</div>
+function renderFileItem(container, arr, idx, box) {
+  const f    = arr[idx];
+  const size = f.file.size < 1048576 ? (f.file.size/1024).toFixed(0)+' Ko' : (f.file.size/1048576).toFixed(1)+' Mo';
+  const div  = document.createElement('div');
+  div.className = 'file-item';
+  div.id = 'fi-'+box+'-'+idx;
+  div.innerHTML = `
+    <div class="file-thumb" id="ft-${box}-${idx}"></div>
     <div class="file-info">
-      <div class="file-name">${entry.name}</div>
+      <div class="file-name">${f.name}</div>
       <div class="file-size">${size}</div>
     </div>
     <div class="file-controls">
-      <button class="btn-icon" onclick="moveFile(${box},${idx},-1)">▲</button>
-      <button class="btn-icon" onclick="moveFile(${box},${idx},+1)">▼</button>
-      <button class="btn-icon danger" onclick="removeFile(${box},${idx})">✕</button>
+      <button class="btn-icon up" onclick="moveFile(${box},${idx},-1)">▲</button>
+      <button class="btn-icon dn" onclick="moveFile(${box},${idx},+1)">▼</button>
+      <button class="btn-icon del" onclick="delFile(${box},${idx})">✕</button>
     </div>`;
-  el.appendChild(item);
+  container.appendChild(div);
+  const thumb = document.getElementById('ft-'+box+'-'+idx);
+  if (f.file.type.startsWith('image/')) {
+    const r = new FileReader();
+    r.onload = e => { f.dataUrl=e.target.result; thumb.innerHTML=`<img src="${e.target.result}">`; };
+    r.readAsDataURL(f.file);
+  } else {
+    thumb.textContent = f.file.type==='application/pdf'?'📄':'📎';
+  }
 }
 
-// ══════════════════════════════════════════════
-//  GÉNÉRATION PDF (pdf-lib)
-// ══════════════════════════════════════════════
-async function fileToImageBytes(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => resolve(e.target.result);
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
+function refreshList(box) {
+  const arr = box===1?files1:files2;
+  const el  = document.getElementById('fl'+box);
+  el.innerHTML='';
+  arr.forEach((_,i) => renderFileItem(el,arr,i,box));
 }
 
-async function buildPDFFromFiles(files, existingPdfBytes=null) {
-  const { PDFDocument } = PDFLib;
-  const doc = existingPdfBytes
-    ? await PDFDocument.load(existingPdfBytes)
-    : await PDFDocument.create();
+function moveFile(box,idx,dir) {
+  const arr=box===1?files1:files2;
+  const j=idx+dir;
+  if(j<0||j>=arr.length)return;
+  [arr[idx],arr[j]]=[arr[j],arr[idx]];
+  refreshList(box);
+}
 
-  for (const entry of files) {
-    const file = entry.file;
-    const ext  = file.name.split('.').pop().toLowerCase();
+function delFile(box,idx) {
+  (box===1?files1:files2).splice(idx,1);
+  refreshList(box);
+}
 
-    if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext) || file.type.startsWith('image/')) {
-      const bytes = await fileToImageBytes(file);
-      let img;
-      if (file.type === 'image/png' || ext === 'png') {
-        img = await doc.embedPng(bytes);
-      } else {
-        try { img = await doc.embedJpg(bytes); }
-        catch { img = await doc.embedPng(bytes); }
-      }
-      const page = doc.addPage([595, 842]); // A4
-      const { width, height } = page.getSize();
-      const scale = Math.min(width / img.width, height / img.height) * 0.92;
-      const w = img.width * scale, h = img.height * scale;
-      page.drawImage(img, { x: (width-w)/2, y: (height-h)/2, width: w, height: h });
+// ── PDF GENERATION ──
+async function fileToPDFPages(file, doc) {
+  const {PDFDocument} = PDFLib;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const buf = await file.arrayBuffer();
 
-    } else if (ext === 'pdf' || file.type === 'application/pdf') {
-      const bytes = await fileToImageBytes(file);
-      const src   = await PDFDocument.load(bytes);
-      const pages = await doc.copyPages(src, src.getPageIndices());
-      pages.forEach(p => doc.addPage(p));
-
-    } else {
-      // Fichier texte ou inconnu → page simple
-      const text = await file.text().catch(() => `Fichier joint : ${file.name}`);
-      const page = doc.addPage([595, 842]);
-      const { width, height } = page.getSize();
-      page.drawText(`Fichier : ${file.name}`, { x: 40, y: height - 60, size: 14 });
-      const lines = text.split('\n').slice(0, 60);
-      lines.forEach((line, i) => {
-        page.drawText(line.substring(0,90), { x: 40, y: height - 90 - i * 14, size: 10 });
-      });
+  if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext) || file.type.startsWith('image/')) {
+    let img;
+    try { img = await doc.embedJpg(buf); } catch { img = await doc.embedPng(buf); }
+    const pg = doc.addPage([595,842]);
+    const {width:w,height:h} = pg.getSize();
+    const sc = Math.min(w/img.width,h/img.height)*0.92;
+    pg.drawImage(img,{x:(w-img.width*sc)/2,y:(h-img.height*sc)/2,width:img.width*sc,height:img.height*sc});
+  } else if (ext==='pdf'||file.type==='application/pdf') {
+    const src = await PDFDocument.load(buf);
+    const pages = await doc.copyPages(src,src.getPageIndices());
+    pages.forEach(p=>doc.addPage(p));
+  } else {
+    const text = await file.text().catch(()=>'Fichier joint : '+file.name);
+    const pg = doc.addPage([595,842]);
+    const {height:h} = pg.getSize();
+    pg.drawText('Fichier : '+file.name,{x:40,y:h-60,size:14});
+    let y=h-90;
+    for(const line of text.split('\n').slice(0,55)){
+      if(y<40)break;
+      pg.drawText(line.substring(0,95),{x:40,y,size:10});
+      y-=14;
     }
   }
+}
+
+async function buildPDF(entries, existingBytes=null) {
+  const {PDFDocument} = PDFLib;
+  const doc = existingBytes ? await PDFDocument.load(existingBytes) : await PDFDocument.create();
+  for(const e of entries) await fileToPDFPages(e.file, doc);
   return await doc.save();
 }
 
-// ══════════════════════════════════════════════
-//  BOX 1 : Créer PDF
-// ══════════════════════════════════════════════
+// ── CLOUDINARY UPLOAD ──
+async function uploadToCloudinary(pdfBytes, publicId) {
+  if(!CFG.cloud||!CFG.preset){ throw new Error('Cloudinary non configuré'); }
+  const blob = new Blob([pdfBytes],{type:'application/pdf'});
+  const fd   = new FormData();
+  fd.append('file', blob, publicId+'.pdf');
+  fd.append('upload_preset', CFG.preset);
+  fd.append('public_id', (CFG.folder||'Patients_DrJallouli')+'/'+publicId);
+  fd.append('resource_type','raw');
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${CFG.cloud}/raw/upload`, {method:'POST',body:fd});
+  if(!r.ok){ const e=await r.json(); throw new Error(e.error?.message||'Erreur upload'); }
+  return await r.json();
+}
+
+async function fetchPDFFromCloudinary(url) {
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('Impossible de télécharger le PDF');
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+// ── BOX 1 : Créer PDF ──
 async function createPDF() {
-  const nom = document.getElementById('nom-patient').value.trim();
-  const num = document.getElementById('num-dossier').value.trim();
-  if (!nom) { alert('Veuillez saisir le nom du patient.'); return; }
-  if (!num) { alert('Veuillez saisir le numéro de dossier.'); return; }
-  if (!filesBox1.length) { alert('Veuillez ajouter au moins un fichier.'); return; }
+  const nom=document.getElementById('nom').value.trim();
+  const num=document.getElementById('num').value.trim();
+  if(!nom){alert('Veuillez saisir le nom du patient.');return;}
+  if(!num){alert('Veuillez saisir le numéro de dossier.');return;}
+  if(!files1.length){alert('Veuillez ajouter au moins un fichier.');return;}
+  if(!CFG.cloud||!CFG.preset){alert('Configurez d\'abord Cloudinary (⚙️).'); showCfg(); return;}
 
-  const btn = document.getElementById('btn-create');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Génération...';
-  setStatus('status-1', 'loading', '⏳ Création du PDF...');
-  showProgress(1, 30, 'Conversion des fichiers...');
-
-  try {
-    const pdfBytes = await buildPDFFromFiles(filesBox1);
-    showProgress(1, 70, 'Envoi sur Google Drive...');
-
-    const fileName = `${num}_${nom}.pdf`.replace(/\s+/g, '_');
-    const result   = await uploadPDF(pdfBytes, fileName);
-
-    showProgress(1, 100, 'Terminé !');
-    setStatus('status-1', 'success', `✔ PDF créé et envoyé sur Drive : ${fileName}`);
-    filesBox1 = [];
-    document.getElementById('file-list-1').innerHTML = '';
-    document.getElementById('nom-patient').value = '';
-    document.getElementById('num-dossier').value = '';
-    setTimeout(() => hideProgress(1), 1500);
-  } catch(e) {
-    setStatus('status-1', 'error', '❌ Erreur : ' + e.message);
-    hideProgress(1);
-  }
-  btn.disabled = false;
-  btn.innerHTML = '✅ Créer PDF et envoyer sur Drive';
-}
-
-// ══════════════════════════════════════════════
-//  BOX 2 : Ajouter à PDF existant
-// ══════════════════════════════════════════════
-async function pickPDFFromDrive() {
-  await ensureFolder();
-  const q = encodeURIComponent(`'${CONFIG.folderId}' in parents and mimeType='application/pdf' and trashed=false`);
-  const r = await driveAPI(`files?q=${q}&fields=files(id,name)&orderBy=name`);
-  const data = await r.json();
-
-  if (!data.files || !data.files.length) {
-    alert('Aucun PDF trouvé dans le dossier Drive. Créez d\'abord un dossier patient.'); return;
-  }
-
-  // Afficher modal de sélection
-  const content = data.files.map(f =>
-    `<div class="drive-file" onclick="selectPDF('${f.id}','${f.name.replace(/'/g,"\\'")}')">
-      <div class="df-icon">📄</div>
-      <div class="df-info"><div class="df-name">${f.name}</div></div>
-      <div class="df-open">Choisir</div>
-    </div>`
-  ).join('');
-  document.getElementById('modal-content').innerHTML = content;
-  document.getElementById('pdf-modal').classList.add('open');
-}
-
-function selectPDF(id, name) {
-  selectedPDF = { id, name };
-  closeModal();
-  document.getElementById('selected-pdf-info').style.display = 'block';
-  document.getElementById('selected-pdf-info').textContent = '📄 Sélectionné : ' + name;
-  document.getElementById('add-files-card').style.display = 'block';
-}
-
-async function appendToPDF() {
-  if (!selectedPDF) { alert('Veuillez sélectionner un PDF.'); return; }
-  if (!filesBox2.length) { alert('Veuillez ajouter au moins un fichier.'); return; }
-
-  setStatus('status-2', 'loading', '⏳ Récupération du PDF existant...');
-  showProgress(2, 20, 'Téléchargement du PDF...');
+  const btn=document.getElementById('btn-create');
+  btn.disabled=true; btn.innerHTML='<div class="spinner"></div> En cours...';
+  setStatus('s1','loading','⏳ Génération du PDF...');
+  showProg(1,20,'Conversion des fichiers...');
 
   try {
-    const existingBytes = await getPDFBytes(selectedPDF.id);
-    showProgress(2, 50, 'Ajout des nouveaux fichiers...');
-
-    const pdfBytes = await buildPDFFromFiles(filesBox2, existingBytes);
-    showProgress(2, 80, 'Mise à jour sur Drive...');
-
-    await updatePDF(selectedPDF.id, pdfBytes);
-    showProgress(2, 100, 'Terminé !');
-    setStatus('status-2', 'success', `✔ PDF mis à jour : ${selectedPDF.name}`);
-
-    filesBox2 = [];
-    document.getElementById('file-list-2').innerHTML = '';
-    selectedPDF = null;
-    document.getElementById('selected-pdf-info').style.display = 'none';
-    document.getElementById('add-files-card').style.display = 'none';
-    setTimeout(() => hideProgress(2), 1500);
+    const pdfBytes = await buildPDF(files1);
+    showProg(1,60,'Envoi sur Cloudinary...');
+    const pid = num+'_'+nom.replace(/\s+/g,'_');
+    const res = await uploadToCloudinary(pdfBytes, pid);
+    showProg(1,100,'Terminé !');
+    setStatus('s1','ok',`✔ PDF envoyé : ${pid}.pdf`);
+    files1=[]; document.getElementById('fl1').innerHTML='';
+    document.getElementById('nom').value=''; document.getElementById('num').value='';
+    setTimeout(()=>hideProg(1),1500);
   } catch(e) {
-    setStatus('status-2', 'error', '❌ Erreur : ' + e.message);
-    hideProgress(2);
+    setStatus('s1','err','❌ '+e.message); hideProg(1);
+  }
+  btn.disabled=false; btn.innerHTML='✅ Créer PDF et envoyer';
+}
+
+// ── BOX 2 : Ajouter ──
+async function loadPDFList() {
+  if(!CFG.cloud||!CFG.preset){alert('Configurez d\'abord Cloudinary.'); showCfg(); return;}
+  document.getElementById('modal-pdf-list').innerHTML='<p style="text-align:center;padding:14px;color:var(--muted)">⏳ Chargement...</p>';
+  openModal('modal-pdf');
+
+  try {
+    // Lister via search API (nécessite API key en header — on utilise l'URL signée ou search)
+    const r = await fetch(
+      `https://api.cloudinary.com/v1_1/${CFG.cloud}/resources/raw?prefix=${CFG.folder||'Patients_DrJallouli'}&max_results=50&type=upload`,
+      { headers: { Authorization: 'Basic ' + btoa(CFG.apikey+':'+CFG.apisecret) } }
+    );
+    if(!r.ok) throw new Error('Vérifiez votre API Key et Secret dans la configuration.');
+    const data = await r.json();
+    const items = (data.resources||[]).filter(f=>f.public_id.endsWith('.pdf')||f.format==='');
+    if(!items.length){ document.getElementById('modal-pdf-list').innerHTML='<p style="text-align:center;padding:14px;color:var(--muted)">Aucun PDF trouvé.</p>'; return; }
+    document.getElementById('modal-pdf-list').innerHTML = items.map(f=>{
+      const name = f.public_id.split('/').pop();
+      return `<div class="drive-item" onclick="selectPDF('${f.public_id}','${name}','${f.secure_url}')">
+        <div class="drive-icon">📄</div>
+        <div class="drive-info"><div class="drive-name">${name}</div></div>
+        <div class="drive-open">Choisir</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('modal-pdf-list').innerHTML=`<p style="color:var(--danger);padding:12px;font-size:.83rem">❌ ${e.message}</p>`;
   }
 }
 
-// ══════════════════════════════════════════════
-//  HELPERS UI
-// ══════════════════════════════════════════════
-function switchTab(idx, el) {
-  document.querySelectorAll('.tab-content').forEach((t,i) => t.style.display = i===idx?'block':'none');
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  if (idx === 2) loadDriveFiles();
+function selectPDF(pid, name, url) {
+  selPDF={publicId:pid,name,url};
+  closeModal('modal-pdf');
+  const el=document.getElementById('pdf-sel');
+  el.style.display='block'; el.textContent='📄 Sélectionné : '+name;
+  document.getElementById('add-card').style.display='block';
 }
 
-function setStatus(id, type, msg) {
-  const el = document.getElementById(id);
-  el.className = 'status-msg ' + type;
-  el.textContent = msg;
-  el.style.display = 'block';
+async function appendPDF() {
+  if(!selPDF){alert('Choisissez d\'abord un PDF.');return;}
+  if(!files2.length){alert('Ajoutez au moins un fichier.');return;}
+
+  setStatus('s2','loading','⏳ Récupération du PDF existant...');
+  showProg(2,20,'Téléchargement...');
+
+  try {
+    const existing = await fetchPDFFromCloudinary(selPDF.url);
+    showProg(2,55,'Ajout des fichiers...');
+    const pdfBytes = await buildPDF(files2, existing);
+    showProg(2,80,'Mise à jour sur Cloudinary...');
+    await uploadToCloudinary(pdfBytes, selPDF.publicId.split('/').pop().replace('.pdf',''));
+    showProg(2,100,'Terminé !');
+    setStatus('s2','ok','✔ PDF mis à jour : '+selPDF.name);
+    files2=[]; document.getElementById('fl2').innerHTML='';
+    selPDF=null;
+    document.getElementById('pdf-sel').style.display='none';
+    document.getElementById('add-card').style.display='none';
+    setTimeout(()=>hideProg(2),1500);
+  } catch(e) {
+    setStatus('s2','err','❌ '+e.message); hideProg(2);
+  }
 }
 
-function showProgress(box, pct, text) {
-  document.getElementById('progress-'+box).style.display = 'block';
-  document.getElementById('pbar-'+box).style.width = pct + '%';
-  document.getElementById('progress-text-'+box).textContent = text;
+// ── DOSSIERS ──
+async function loadDossiers() {
+  const el=document.getElementById('dossiers-list');
+  el.innerHTML='<p style="color:var(--muted);text-align:center;padding:16px">⏳ Chargement...</p>';
+  if(!CFG.cloud||!CFG.preset){el.innerHTML='<p style="color:var(--danger);text-align:center;padding:12px;font-size:.82rem">⚠️ Configurez Cloudinary d\'abord.</p>'; return;}
+
+  try {
+    const r = await fetch(
+      `https://api.cloudinary.com/v1_1/${CFG.cloud}/resources/raw?prefix=${CFG.folder||'Patients_DrJallouli'}&max_results=50&type=upload`,
+      { headers:{ Authorization:'Basic '+btoa((CFG.apikey||'')+':'+(CFG.apisecret||'')) } }
+    );
+    if(!r.ok) throw new Error('Erreur API');
+    const data = await r.json();
+    if(!data.resources||!data.resources.length){
+      el.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">Aucun dossier patient encore.</p>'; return;
+    }
+    el.innerHTML = data.resources.map(f=>{
+      const name = f.public_id.split('/').pop();
+      const date = new Date(f.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+      return `<a class="drive-item" href="${f.secure_url}" target="_blank">
+        <div class="drive-icon">📄</div>
+        <div class="drive-info"><div class="drive-name">${name}</div><div class="drive-date">${date}</div></div>
+        <div class="drive-open">Ouvrir ↗</div>
+      </a>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML=`<p style="color:var(--danger);text-align:center;padding:12px;font-size:.82rem">❌ Ajoutez votre API Key et Secret dans ⚙️ Configuration.</p>`;
+  }
 }
 
-function hideProgress(box) {
-  document.getElementById('progress-'+box).style.display = 'none';
-}
-
-function closeModal() {
-  document.getElementById('pdf-modal').classList.remove('open');
-}
+// ── HELPERS ──
+function setStatus(id,type,msg){ const e=document.getElementById(id); e.className='status '+type; e.textContent=msg; e.style.display='block'; }
+function showProg(b,pct,txt){ document.getElementById('pw'+b).style.display='block'; document.getElementById('pf'+b).style.width=pct+'%'; document.getElementById('pt'+b).textContent=txt; }
+function hideProg(b){ document.getElementById('pw'+b).style.display='none'; }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 </script>
-
 </body>
 </html>
