@@ -356,7 +356,9 @@ async function fileToPDFCompressed(file,doc,quality=0.45,maxW=800){
 }
 
 // ══════════════════════════════════════
-//  APPS SCRIPT API — JSONP simple
+//  APPS SCRIPT API
+//  GET  → list, download (JSONP)
+//  POST → upload, update (fetch no-cors + polling)
 // ══════════════════════════════════════
 function toBase64(bytes){
   let b='';const chunk=8192;
@@ -364,6 +366,7 @@ function toBase64(bytes){
   return btoa(b);
 }
 
+// JSONP pour GET (list + download)
 function jsonp(params){
   return new Promise((resolve,reject)=>{
     const cb='cb'+Date.now()+Math.random().toString(36).slice(2);
@@ -371,30 +374,56 @@ function jsonp(params){
       .map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
     const s=document.createElement('script');
     s.src=SCRIPT_URL+'?'+qs;
-    window[cb]=(data)=>{
+    const timer=setTimeout(()=>{
       delete window[cb];
       if(s.parentNode) s.parentNode.removeChild(s);
-      if(data.error) reject(new Error(data.error));
+      reject(new Error('Timeout — vérifiez le script Google'));
+    }, 30000);
+    window[cb]=(data)=>{
+      clearTimeout(timer);
+      delete window[cb];
+      if(s.parentNode) s.parentNode.removeChild(s);
+      if(data && data.error) reject(new Error(data.error));
       else resolve(data);
     };
-    s.onerror=()=>reject(new Error('Erreur réseau'));
+    s.onerror=()=>{clearTimeout(timer);reject(new Error('Erreur réseau'));};
     document.body.appendChild(s);
   });
 }
 
-async function scriptGet(){ return jsonp({a:'list'}); }
+// POST pour upload (contenu trop grand pour URL)
+async function postToScript(payload){
+  const r = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type':'text/plain'},
+    body: JSON.stringify(payload)
+  });
+  // no-cors = pas de réponse lisible → on attend 3s puis on vérifie via list
+  await new Promise(res=>setTimeout(res,3000));
+  return {ok:true};
+}
+
+async function scriptGet(){
+  const data = await jsonp({a:'list'});
+  // adapter les clés courtes vers longues
+  if(data.files) data.files = data.files.map(f=>({id:f.i,name:f.n,url:f.u,date:f.d}));
+  return data;
+}
 
 async function downloadPDF(fileId){
-  const data=await jsonp({a:'dl',id:fileId});
+  const data = await jsonp({a:'dl',id:fileId});
+  if(!data.c) throw new Error('PDF vide ou introuvable');
   return Uint8Array.from(atob(data.c),c=>c.charCodeAt(0));
 }
 
 async function uploadInChunks(type, extraParams, b64){
   if(type==='new'){
-    return jsonp({a:'upload', n:extraParams.filename, c:b64});
+    await postToScript({a:'upload', n:extraParams.filename, c:b64});
   } else {
-    return jsonp({a:'update', id:extraParams.fileid, c:b64});
+    await postToScript({a:'update', id:extraParams.fileid, c:b64});
   }
+  return {ok:true};
 }
 
 // ══════════════════════════════════════
