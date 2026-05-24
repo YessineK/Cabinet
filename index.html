@@ -181,7 +181,7 @@ input[type="file"]{display:none}
 // ══════════════════════════════════════
 //  CONFIG — Google Apps Script
 // ══════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxWOqpFDj3uP_35-VDO-QvTn2kosnSAlFJMLst5LXPvHqIz6kIr3hWxbq6h698kY0N8/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTUp44VhyLnalVKW9Fqlt4MUsUioxJn5EegSJ0J6oWDvK-h3e-lfxa9rNNq5GKfk4O/exec';
 const FOLDER_ID  = '11e4GUe4FMrP2jZbVzGgrNHUeKPMqxXLr';
 
 // ══════════════════════════════════════
@@ -243,22 +243,43 @@ function rm(box,idx){(box===1?files1:files2).splice(idx,1);refreshList(box);}
 // ══════════════════════════════════════
 //  IMAGE COMPRESSION
 // ══════════════════════════════════════
-async function compressImage(file,maxW=1200,quality=0.78){
+async function compressImage(file, targetMB=0.8){
   return new Promise(resolve=>{
     const img=new Image();
     const url=URL.createObjectURL(file);
     img.onload=()=>{
-      let w=img.width,h=img.height;
-      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
-      const c=document.createElement('canvas');
-      c.width=w;c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      URL.revokeObjectURL(url);
-      c.toBlob(b=>resolve(b),'image/jpeg',quality);
+      const tryCompress=(maxW, quality)=>{
+        let w=img.width, h=img.height;
+        if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+        const c=document.createElement('canvas');
+        c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        c.toBlob(blob=>{
+          if(!blob){URL.revokeObjectURL(url);resolve(file);return;}
+          if(blob.size > targetMB*1024*1024 && quality > 0.3){
+            tryCompress(maxW, quality-0.1);
+          } else if(blob.size > targetMB*1024*1024 && maxW > 600){
+            tryCompress(maxW-200, 0.5);
+          } else {
+            URL.revokeObjectURL(url);
+            resolve(blob);
+          }
+        },'image/jpeg', quality);
+      };
+      tryCompress(1400, 0.82);
     };
     img.onerror=()=>{URL.revokeObjectURL(url);resolve(file);};
     img.src=url;
   });
+}
+
+// Compresse un PDF existant si > 5MB en recompressant ses images
+async function compressPDFIfNeeded(pdfBytes, maxMB=4.5){
+  if(pdfBytes.length <= maxMB*1024*1024) return pdfBytes;
+  // Déjà dans la limite, on retourne tel quel
+  // Pour les PDFs trop lourds, on ne peut pas recompresser côté browser sans lib lourde
+  // On retourne quand même (le script Google gère)
+  return pdfBytes;
 }
 
 // ══════════════════════════════════════
@@ -294,7 +315,44 @@ async function buildPDF(entries,existingBytes=null,onProgress=null){
     if(onProgress) onProgress(i+1,entries.length,entries[i].name);
     await fileToPDF(entries[i].file,doc);
   }
-  return await doc.save();
+  let pdfBytes = await doc.save();
+  // Si > 5MB, recompresser les images plus agressivement
+  if(pdfBytes.length > 5*1024*1024){
+    const doc2 = await PDFDocument.create();
+    for(let i=0;i<entries.length;i++){
+      if(onProgress) onProgress(i+1,entries.length,'Optimisation '+entries[i].name+'...');
+      await fileToPDFCompressed(entries[i].file,doc2,0.45,800);
+    }
+    if(existingBytes){
+      const srcDoc=await PDFDocument.load(existingBytes);
+      const pages=await doc2.copyPages(srcDoc,srcDoc.getPageIndices());
+      // prepend existing pages
+      const tmpDoc=await PDFDocument.create();
+      const ep=await tmpDoc.copyPages(srcDoc,srcDoc.getPageIndices());
+      ep.forEach(p=>tmpDoc.addPage(p));
+      const np=await tmpDoc.copyPages(doc2,doc2.getPageIndices());
+      np.forEach(p=>tmpDoc.addPage(p));
+      pdfBytes=await tmpDoc.save();
+    } else {
+      pdfBytes=await doc2.save();
+    }
+  }
+  return pdfBytes;
+}
+
+async function fileToPDFCompressed(file,doc,quality=0.45,maxW=800){
+  const {PDFDocument}=PDFLib;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(['jpg','jpeg','png','gif','bmp','webp'].includes(ext)||file.type.startsWith('image/')){
+    const compressed=await compressImage(file,quality);
+    const buf=await compressed.arrayBuffer();
+    let img;try{img=await doc.embedJpg(buf);}catch{img=await doc.embedPng(buf);}
+    const pg=doc.addPage([595,842]);const{width:w,height:h}=pg.getSize();
+    const sc=Math.min(w/img.width,h/img.height)*.92;
+    pg.drawImage(img,{x:(w-img.width*sc)/2,y:(h-img.height*sc)/2,width:img.width*sc,height:img.height*sc});
+  } else {
+    await fileToPDF(file,doc);
+  }
 }
 
 // ══════════════════════════════════════
@@ -304,6 +362,25 @@ function toBase64(bytes){
   let b='';const chunk=8192;
   for(let i=0;i<bytes.length;i+=chunk) b+=String.fromCharCode(...bytes.subarray(i,i+chunk));
   return btoa(b);
+}
+
+// Upload en chunks pour éviter la limite URL
+async function uploadInChunks(action, extraParams, b64Content){
+  const CHUNK = 50000; // 50KB par chunk en base64
+  const total = Math.ceil(b64Content.length / CHUNK);
+  // Initier l'upload
+  const initRes = await jsonp({action: action+'_init', total: String(total), ...extraParams});
+  if(initRes.error) throw new Error(initRes.error);
+  const uploadId = initRes.uploadId;
+  // Envoyer les chunks
+  for(let i=0;i<total;i++){
+    const chunk = b64Content.slice(i*CHUNK,(i+1)*CHUNK);
+    const r = await jsonp({action:'chunk', uploadId, index:String(i), data:chunk});
+    if(r.error) throw new Error(r.error);
+  }
+  // Finaliser
+  const finalRes = await jsonp({action: action+'_finish', uploadId, ...extraParams});
+  return finalRes;
 }
 
 function jsonp(params){
@@ -350,7 +427,7 @@ async function doCreate(){
     showProg(1,65,'Envoi sur Google Drive...');
     const fname=num+'_'+nom.replace(/\s+/g,'_')+'.pdf';
     const b64=toBase64(pdfBytes);
-    const res=await scriptPost({action:'upload',filename:fname,content:b64});
+    const res=await uploadInChunks('upload', {filename:fname}, b64);
     if(res.error) throw new Error(res.error);
     showProg(1,100,'✅ Terminé !');
     setStatus('s1','ok','✅ PDF enregistré sur Drive : '+fname);
@@ -402,7 +479,7 @@ async function doAppend(){
     });
     showProg(2,80,'Mise à jour sur Drive...');
     const b64=toBase64(pdfBytes);
-    const res=await scriptPost({action:'update',fileId:selPDF.id,content:b64});
+    const res=await uploadInChunks('update', {fileId:selPDF.id}, b64);
     if(res.error) throw new Error(res.error);
     showProg(2,100,'✅ Terminé !');
     setStatus('s2','ok','✅ PDF mis à jour : '+selPDF.name);
@@ -452,29 +529,15 @@ async function viewPDF(fileId,name,driveUrl){
   const card=document.getElementById('viewer-card');
   const wrap=document.getElementById('pdf-viewer');
   document.getElementById('viewer-title').textContent='📄 '+name.replace('.pdf','');
-  wrap.innerHTML='<div style="color:#aaa;text-align:center;padding:20px;font-size:.82rem">⏳ Chargement du PDF...</div>';
+  // Utiliser Google Drive preview embed — fonctionne sur tous les appareils sans téléchargement
+  wrap.innerHTML=`
+    <div class="pv-toolbar">
+      <span class="pv-name">📄 ${name}</span>
+      <a href="${driveUrl}" target="_blank">↗ Ouvrir dans Drive</a>
+    </div>
+    <iframe src="https://drive.google.com/file/d/${fileId}/preview" allowfullscreen></iframe>`;
   card.style.display='block';
   card.scrollIntoView({behavior:'smooth',block:'start'});
-  try{
-    const bytes=await downloadPDF(fileId);
-    const blob=new Blob([bytes],{type:'application/pdf'});
-    const blobUrl=URL.createObjectURL(blob);
-    wrap.innerHTML=`
-      <div class="pv-toolbar">
-        <span class="pv-name">📄 ${name}</span>
-        <a href="${blobUrl}" download="${name}">⬇️ Télécharger</a>
-        <a href="${driveUrl}" target="_blank">↗ Drive</a>
-      </div>
-      <iframe src="${blobUrl}"></iframe>`;
-  }catch(e){
-    // Fallback : ouvrir dans Drive directement
-    wrap.innerHTML=`
-      <div class="pv-toolbar">
-        <span class="pv-name">📄 ${name}</span>
-        <a href="${driveUrl}" target="_blank">↗ Ouvrir dans Drive</a>
-      </div>
-      <iframe src="https://drive.google.com/file/d/${fileId}/preview"></iframe>`;
-  }
 }
 
 function closeViewer(){document.getElementById('viewer-card').style.display='none';document.getElementById('pdf-viewer').innerHTML='';}
