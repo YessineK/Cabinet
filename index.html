@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dr Jallouli">
+<meta name="theme-color" content="#0a3d6b">
+<title>Cabinet Dr Jallouli Mohamed</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<style>
+:root{--navy:#0a3d6b;--gold:#c9a84c;--white:#f8f6f1;--card:#fff;--muted:#8a9bb0;--danger:#c0392b;--success:#1a7a4a;--border:#dde4ee;--gdrive:#1a73e8}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:#1a2535;min-height:100vh;overscroll-behavior:none}
+.header{background:var(--navy);padding:14px 18px;position:sticky;top:0;z-index:100;box-shadow:0 2px 14px rgba(10,61,107,.35)}
+.header h1{color:#fff;font-size:1.05rem;font-weight:600;line-height:1.3}
+.header h1 span{color:#b3d4ff;display:block;font-size:.74rem;font-weight:300;margin-top:1px}
+.main{padding:14px 14px 40px;max-width:520px;margin:0 auto}
+.tabs{display:flex;background:var(--card);border-radius:12px;padding:3px;margin-bottom:14px;box-shadow:0 2px 8px rgba(10,61,107,.08)}
+.tab{flex:1;padding:9px 3px;border-radius:9px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;text-align:center}
+.tab.active{background:var(--navy);color:#fff}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(10,61,107,.08);margin-bottom:14px;border:.5px solid var(--border)}
+.card-title{font-size:.93rem;font-weight:600;color:var(--navy);margin-bottom:13px;padding-bottom:9px;border-bottom:1.5px solid var(--border)}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--navy);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.field input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;background:#fafbfd;color:#1a2535;outline:none;transition:border .2s}
+.field input:focus{border-color:var(--gdrive);background:#fff}
+.btn{width:100%;padding:12px;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:transform .15s;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:8px}
+.btn:active{transform:scale(.97)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}
+.btn-sm{padding:7px 13px;font-size:.76rem;border-radius:8px;margin-bottom:0;width:auto}
+.capture-zone{border:2px dashed var(--border);border-radius:12px;padding:18px 12px;text-align:center;margin-bottom:9px;background:#fafbfd;cursor:pointer;transition:all .18s}
+.capture-zone:active{background:#e8f0fe;border-color:var(--gdrive)}
+.capture-zone .cz-icon{font-size:1.9rem;margin-bottom:5px}
+.capture-zone p{font-size:.8rem;color:var(--muted)}
+.capture-zone strong{color:var(--navy)}
+.file-list{margin:6px 0}
+.file-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f7f9fc;border-radius:9px;margin-bottom:4px;border:.5px solid var(--border)}
+.file-thumb{width:36px;height:36px;border-radius:7px;background:#eef2f8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;overflow:hidden}
+.file-thumb img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:.76rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-size{font-size:.68rem;color:var(--muted)}
+.file-controls{display:flex;gap:3px}
+.btn-icon{width:27px;height:27px;border-radius:7px;border:none;display:flex;align-items:center;justify-content:center;font-size:.76rem;cursor:pointer;transition:transform .12s}
+.btn-icon:active{transform:scale(.86)}
+.btn-icon.up,.btn-icon.dn{background:#e8eef6;color:var(--navy)}
+.btn-icon.del{background:#fde8e8;color:var(--danger)}
+.prog-wrap{display:none;margin:9px 0}
+.prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--gdrive));border-radius:3px;transition:width .3s;width:0%}
+.prog-text{font-size:.73rem;color:var(--muted);text-align:center;margin-top:4px}
+.status{padding:9px 12px;border-radius:9px;font-size:.8rem;font-weight:500;margin-top:7px;display:none;line-height:1.5}
+.status.ok{background:#e6f4ed;color:var(--success);display:block}
+.status.err{background:#fde8e8;color:var(--danger);display:block}
+.status.loading{background:#e8f0fe;color:var(--gdrive);display:block}
+.pdf-sel-bar{background:#e8f0fe;color:#0a3d6b;border-radius:9px;padding:9px 12px;font-size:.8rem;font-weight:600;margin:8px 0;display:none}
+.dos-item{display:flex;align-items:center;gap:10px;padding:12px 13px;background:#fafbfd;border-radius:12px;margin-bottom:7px;border:.5px solid var(--border)}
+.dos-icon{font-size:1.5rem;flex-shrink:0}
+.dos-info{flex:1;min-width:0;cursor:pointer}
+.dos-name{font-size:.83rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dos-meta{font-size:.7rem;color:var(--muted);margin-top:2px}
+.dos-btns{display:flex;gap:6px;flex-shrink:0}
+.dos-btn{background:#e8f0fe;color:var(--gdrive);border:none;border-radius:7px;padding:5px 9px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center}
+.dos-btn.drive{background:#e6f4ed;color:var(--success)}
+.pdf-viewer-wrap{background:#1a1a2e;border-radius:12px;overflow:hidden;margin-top:10px}
+.pdf-viewer-wrap iframe{width:100%;height:72vh;border:none;display:block}
+.pv-toolbar{background:#0a3d6b;padding:8px 12px;display:flex;align-items:center;gap:8px}
+.pv-name{color:#fff;font-size:.76rem;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-toolbar a{color:#ffd54f;font-size:.72rem;font-weight:600;text-decoration:none;flex-shrink:0}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:300}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:22px 22px 0 0;padding:20px 16px 36px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto}
+.modal h3{font-size:.98rem;font-weight:600;color:var(--navy);margin-bottom:13px}
+.modal-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:#fafbfd;border-radius:10px;margin-bottom:6px;border:.5px solid var(--border);cursor:pointer}
+.modal-item:active{background:#e8f0fe}
+.modal-item-name{font-size:.82rem;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modal-item-date{font-size:.7rem;color:var(--muted)}
+.spinner{width:17px;height:17px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{text-align:center;padding:14px;font-size:.71rem;color:var(--muted);border-top:.5px solid var(--border)}
+.footer strong{color:var(--navy)}
+input[type="file"]{display:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <h1>🏥 Cabinet Dr Jallouli<span>Gestion Dossiers Patients — Google Drive</span></h1>
+    <svg width="22" height="22" viewBox="0 0 87.3 78"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#4285f4"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#34a853"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#0066da"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 27h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
+  </div>
+</div>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(0,this)">📄 Nouveau PDF</button>
+    <button class="tab" onclick="switchTab(1,this)">➕ Ajouter</button>
+    <button class="tab" onclick="switchTab(2,this)">📁 Dossiers</button>
+  </div>
+
+  <!-- TAB 0 -->
+  <div id="tab-0">
+    <div class="card">
+      <div class="card-title">📄 Créer un dossier patient</div>
+      <div class="field"><label>Nom du patient</label><input type="text" id="nom" placeholder="Ben Ali Ahmed" autocomplete="off"></div>
+      <div class="field"><label>Numéro de dossier</label><input type="text" id="num" placeholder="2024-001" autocomplete="off"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📸 Fichiers <span style="font-size:.7rem;color:var(--muted);font-weight:400">— Photos · PDF · Tout fichier</span></div>
+      <div class="capture-zone" onclick="document.getElementById('fi1').click()">
+        <div class="cz-icon">📷</div>
+        <p><strong>Appuyer pour prendre une photo</strong><br>ou importer un fichier</p>
+      </div>
+      <input type="file" id="fi1" multiple accept="image/*,application/pdf,.doc,.docx,.txt" onchange="addFiles(this.files,1)">
+      <div class="file-list" id="fl1"></div>
+      <div class="prog-wrap" id="pw1"><div class="prog-bar"><div class="prog-fill" id="pf1"></div></div><div class="prog-text" id="pt1"></div></div>
+      <button class="btn btn-gold" id="btn-create" onclick="doCreate()">✅ Créer PDF et envoyer sur Drive</button>
+      <div class="status" id="s1"></div>
+    </div>
+  </div>
+
+  <!-- TAB 1 -->
+  <div id="tab-1" style="display:none">
+    <div class="card">
+      <div class="card-title">➕ Ajouter à un dossier existant</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:11px">Choisissez le dossier patient puis ajoutez de nouvelles photos.</p>
+      <button class="btn btn-outline" onclick="openPickModal()">☁️ Choisir un dossier patient</button>
+      <div class="pdf-sel-bar" id="pdf-sel"></div>
+    </div>
+    <div class="card" id="add-card" style="display:none">
+      <div class="card-title">📸 Nouveaux fichiers</div>
+      <div class="capture-zone" onclick="document.getElementById('fi2').click()">
+        <div class="cz-icon">📷</div>
+        <p><strong>Appuyer pour ajouter des fichiers</strong></p>
+      </div>
+      <input type="file" id="fi2" multiple accept="image/*,application/pdf,.doc,.docx,.txt" onchange="addFiles(this.files,2)">
+      <div class="file-list" id="fl2"></div>
+      <div class="prog-wrap" id="pw2"><div class="prog-bar"><div class="prog-fill" id="pf2"></div></div><div class="prog-text" id="pt2"></div></div>
+      <button class="btn btn-gold" onclick="doAppend()">✅ Ajouter et mettre à jour</button>
+      <div class="status" id="s2"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2 -->
+  <div id="tab-2" style="display:none">
+    <div class="card">
+      <div class="card-title">📁 Dossiers patients — Google Drive</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-navy btn-sm" onclick="loadDossiers()">🔄 Actualiser</button>
+        <input type="text" placeholder="🔍 Rechercher..." style="flex:1;min-width:120px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-family:'DM Sans',sans-serif;outline:none" oninput="filterDos(this.value)">
+      </div>
+      <div id="dos-list"><p style="color:var(--muted);font-size:.82rem;text-align:center;padding:18px">Appuyez sur Actualiser.</p></div>
+    </div>
+    <div class="card" id="viewer-card" style="display:none">
+      <div class="card-title" id="viewer-title">📄 Visualisation</div>
+      <div class="pdf-viewer-wrap" id="pdf-viewer"></div>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px;width:auto" onclick="closeViewer()">✕ Fermer</button>
+    </div>
+  </div>
+
+  <div class="footer"><strong>Cabinet Dr Jallouli Mohamed</strong> · Google Drive · v7.0</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-pick">
+  <div class="modal">
+    <h3>📄 Choisir un dossier patient</h3>
+    <div id="modal-list"><p style="color:var(--muted);text-align:center;padding:14px">⏳ Chargement...</p></div>
+    <button class="btn btn-outline" style="margin-top:12px" onclick="closeModal()">✕ Fermer</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  CONFIG — Google Apps Script
+// ══════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlttHZCxN-bTM-QcGY5D8RMlXAgn3vLoBp2PV_PmSvWWeaBJxFDsobZ8SGTt0N4-Y/exec';
+const FOLDER_ID  = '11e4GUe4FMrP2jZbVzGgrNHUeKPMqxXLr';
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let files1=[], files2=[], selPDF=null, allDos=[];
+
+// ══════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════
+function switchTab(idx,el){
+  [0,1,2].forEach(i=>document.getElementById('tab-'+i).style.display=i===idx?'block':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(idx===2) loadDossiers();
+}
+
+// ══════════════════════════════════════
+//  FICHIERS
+// ══════════════════════════════════════
+function addFiles(fileList,box){
+  const arr=box===1?files1:files2;
+  const el=document.getElementById('fl'+box);
+  Array.from(fileList).forEach(f=>{
+    arr.push({file:f,name:f.name,dataUrl:null});
+    renderItem(el,arr,arr.length-1,box);
+  });
+}
+
+function renderItem(container,arr,idx,box){
+  const f=arr[idx];
+  const sz=f.file.size<1048576?(f.file.size/1024).toFixed(0)+' Ko':(f.file.size/1048576).toFixed(1)+' Mo';
+  const d=document.createElement('div');
+  d.className='file-item';
+  d.innerHTML=`<div class="file-thumb" id="ft-${box}-${idx}"></div>
+    <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${sz}</div></div>
+    <div class="file-controls">
+      <button class="btn-icon up" onclick="mv(${box},${idx},-1)">▲</button>
+      <button class="btn-icon dn" onclick="mv(${box},${idx},+1)">▼</button>
+      <button class="btn-icon del" onclick="rm(${box},${idx})">✕</button>
+    </div>`;
+  container.appendChild(d);
+  const th=document.getElementById('ft-'+box+'-'+idx);
+  if(f.file.type.startsWith('image/')){
+    const r=new FileReader();
+    r.onload=e=>{f.dataUrl=e.target.result;th.innerHTML=`<img src="${e.target.result}">`;}
+    r.readAsDataURL(f.file);
+  } else th.textContent=f.file.type==='application/pdf'?'📄':'📎';
+}
+
+function refreshList(box){
+  const arr=box===1?files1:files2;
+  document.getElementById('fl'+box).innerHTML='';
+  arr.forEach((_,i)=>renderItem(document.getElementById('fl'+box),arr,i,box));
+}
+function mv(box,idx,d){const a=box===1?files1:files2;const j=idx+d;if(j<0||j>=a.length)return;[a[idx],a[j]]=[a[j],a[idx]];refreshList(box);}
+function rm(box,idx){(box===1?files1:files2).splice(idx,1);refreshList(box);}
+
+// ══════════════════════════════════════
+//  IMAGE COMPRESSION
+// ══════════════════════════════════════
+async function compressImage(file,maxW=1200,quality=0.78){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      c.toBlob(b=>resolve(b),'image/jpeg',quality);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);resolve(file);};
+    img.src=url;
+  });
+}
+
+// ══════════════════════════════════════
+//  PDF BUILD
+// ══════════════════════════════════════
+async function fileToPDF(file,doc){
+  const {PDFDocument}=PDFLib;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(['jpg','jpeg','png','gif','bmp','webp'].includes(ext)||file.type.startsWith('image/')){
+    const compressed=await compressImage(file);
+    const buf=await compressed.arrayBuffer();
+    let img;try{img=await doc.embedJpg(buf);}catch{img=await doc.embedPng(await file.arrayBuffer());}
+    const pg=doc.addPage([595,842]);const{width:w,height:h}=pg.getSize();
+    const sc=Math.min(w/img.width,h/img.height)*.92;
+    pg.drawImage(img,{x:(w-img.width*sc)/2,y:(h-img.height*sc)/2,width:img.width*sc,height:img.height*sc});
+  } else if(ext==='pdf'||file.type==='application/pdf'){
+    const src=await PDFDocument.load(await file.arrayBuffer());
+    const pages=await doc.copyPages(src,src.getPageIndices());
+    pages.forEach(p=>doc.addPage(p));
+  } else {
+    const text=await file.text().catch(()=>'Fichier : '+file.name);
+    const pg=doc.addPage([595,842]);const{height:h}=pg.getSize();
+    pg.drawText('Fichier : '+file.name,{x:40,y:h-60,size:14});
+    let y=h-90;
+    for(const line of text.split('\n').slice(0,55)){if(y<40)break;pg.drawText(line.substring(0,95),{x:40,y,size:10});y-=14;}
+  }
+}
+
+async function buildPDF(entries,existingBytes=null,onProgress=null){
+  const {PDFDocument}=PDFLib;
+  const doc=existingBytes?await PDFDocument.load(existingBytes):await PDFDocument.create();
+  for(let i=0;i<entries.length;i++){
+    if(onProgress) onProgress(i+1,entries.length,entries[i].name);
+    await fileToPDF(entries[i].file,doc);
+  }
+  return await doc.save();
+}
+
+// ══════════════════════════════════════
+//  APPS SCRIPT API
+// ══════════════════════════════════════
+function toBase64(bytes){
+  let b='';const chunk=8192;
+  for(let i=0;i<bytes.length;i+=chunk) b+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+  return btoa(b);
+}
+
+async function scriptPost(payload){
+  const r=await fetch(SCRIPT_URL,{
+    method:'POST',
+    body:JSON.stringify({...payload,folderId:FOLDER_ID})
+  });
+  const text=await r.text();
+  try{return JSON.parse(text);}
+  catch{throw new Error('Réponse invalide : '+text.substring(0,100));}
+}
+
+async function scriptGet(){
+  const r=await fetch(SCRIPT_URL+'?folderId='+FOLDER_ID);
+  const text=await r.text();
+  try{return JSON.parse(text);}
+  catch{throw new Error('Réponse invalide : '+text.substring(0,100));}
+}
+
+async function downloadPDF(fileId){
+  const r=await fetch(SCRIPT_URL+'?folderId='+FOLDER_ID+'&fileId='+fileId);
+  const data=await r.json();
+  if(data.error) throw new Error(data.error);
+  const bytes=Uint8Array.from(atob(data.content),c=>c.charCodeAt(0));
+  return bytes;
+}
+
+// ══════════════════════════════════════
+//  BOX 1 — Créer PDF
+// ══════════════════════════════════════
+async function doCreate(){
+  const nom=document.getElementById('nom').value.trim();
+  const num=document.getElementById('num').value.trim();
+  if(!nom){alert('Nom du patient obligatoire.');return;}
+  if(!num){alert('Numéro de dossier obligatoire.');return;}
+  if(!files1.length){alert('Ajoutez au moins un fichier.');return;}
+  const btn=document.getElementById('btn-create');
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> En cours...';
+  setStatus('s1','loading','⏳ Préparation...');showProg(1,5,'Démarrage...');
+  try{
+    const pdfBytes=await buildPDF(files1,null,(cur,total,name)=>{
+      showProg(1,Math.round(5+(cur/total)*55),'📄 '+cur+'/'+total+' : '+name);
+    });
+    showProg(1,65,'Envoi sur Google Drive...');
+    const fname=num+'_'+nom.replace(/\s+/g,'_')+'.pdf';
+    const b64=toBase64(pdfBytes);
+    const res=await scriptPost({action:'upload',filename:fname,content:b64});
+    if(res.error) throw new Error(res.error);
+    showProg(1,100,'✅ Terminé !');
+    setStatus('s1','ok','✅ PDF enregistré sur Drive : '+fname);
+    files1=[];document.getElementById('fl1').innerHTML='';
+    document.getElementById('nom').value='';document.getElementById('num').value='';
+    setTimeout(()=>hideProg(1),2000);
+  }catch(e){setStatus('s1','err','❌ '+e.message);hideProg(1);}
+  btn.disabled=false;btn.innerHTML='✅ Créer PDF et envoyer sur Drive';
+}
+
+// ══════════════════════════════════════
+//  BOX 2 — Ajouter
+// ══════════════════════════════════════
+async function openPickModal(){
+  document.getElementById('modal-list').innerHTML='<p style="color:var(--muted);text-align:center;padding:14px">⏳ Chargement...</p>';
+  document.getElementById('modal-pick').classList.add('open');
+  try{
+    const data=await scriptGet();
+    const pdfs=(data.files||[]);
+    if(!pdfs.length){document.getElementById('modal-list').innerHTML='<p style="color:var(--muted);text-align:center;padding:14px">Aucun dossier trouvé.</p>';return;}
+    document.getElementById('modal-list').innerHTML=pdfs.map(f=>{
+      const date=f.date?new Date(f.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}):'';
+      return `<div class="modal-item" onclick="pickPDF('${f.id}','${f.name.replace(/'/g,"\\'")}','${(f.url||'').replace(/'/g,"\\'")}')">
+        <span style="font-size:1.4rem">📄</span>
+        <div style="flex:1;min-width:0"><div class="modal-item-name">${f.name}</div><div class="modal-item-date">${date}</div></div>
+        <span style="font-size:.74rem;color:var(--gdrive);font-weight:600">Choisir ›</span>
+      </div>`;
+    }).join('');
+  }catch(e){document.getElementById('modal-list').innerHTML=`<p style="color:var(--danger);padding:12px;font-size:.8rem">❌ ${e.message}</p>`;}
+}
+
+function pickPDF(id,name,url){
+  selPDF={id,name,url};
+  closeModal();
+  const el=document.getElementById('pdf-sel');
+  el.style.display='block';el.textContent='📄 Sélectionné : '+name;
+  document.getElementById('add-card').style.display='block';
+}
+
+async function doAppend(){
+  if(!selPDF){alert('Choisissez un dossier.');return;}
+  if(!files2.length){alert('Ajoutez au moins un fichier.');return;}
+  setStatus('s2','loading','⏳ Téléchargement du PDF existant...');showProg(2,10,'Téléchargement...');
+  try{
+    const existing=await downloadPDF(selPDF.id);
+    showProg(2,40,'Ajout des fichiers...');
+    const pdfBytes=await buildPDF(files2,existing,(cur,total,name)=>{
+      showProg(2,Math.round(40+(cur/total)*35),'📄 '+cur+'/'+total+' : '+name);
+    });
+    showProg(2,80,'Mise à jour sur Drive...');
+    const b64=toBase64(pdfBytes);
+    const res=await scriptPost({action:'update',fileId:selPDF.id,content:b64});
+    if(res.error) throw new Error(res.error);
+    showProg(2,100,'✅ Terminé !');
+    setStatus('s2','ok','✅ PDF mis à jour : '+selPDF.name);
+    files2=[];document.getElementById('fl2').innerHTML='';
+    selPDF=null;
+    document.getElementById('pdf-sel').style.display='none';
+    document.getElementById('add-card').style.display='none';
+    setTimeout(()=>hideProg(2),2000);
+  }catch(e){setStatus('s2','err','❌ '+e.message);hideProg(2);}
+}
+
+// ══════════════════════════════════════
+//  DOSSIERS + VIEWER
+// ══════════════════════════════════════
+async function loadDossiers(){
+  const el=document.getElementById('dos-list');
+  el.innerHTML='<p style="color:var(--muted);text-align:center;padding:16px">⏳ Chargement...</p>';
+  try{
+    const data=await scriptGet();
+    allDos=data.files||[];
+    renderDos(allDos);
+  }catch(e){el.innerHTML=`<p style="color:var(--danger);text-align:center;padding:12px;font-size:.82rem">❌ ${e.message}</p>`;}
+}
+
+function renderDos(list){
+  const el=document.getElementById('dos-list');
+  if(!list.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">Aucun dossier patient.</p>';return;}
+  el.innerHTML=list.map(f=>{
+    const date=f.date?new Date(f.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}):'';
+    return `<div class="dos-item">
+      <div class="dos-icon">📄</div>
+      <div class="dos-info" onclick="viewPDF('${f.id}','${f.name.replace(/'/g,"\\'")}','${(f.url||'').replace(/'/g,"\\'")}')">
+        <div class="dos-name">${f.name.replace('.pdf','')}</div>
+        <div class="dos-meta">${date}</div>
+      </div>
+      <div class="dos-btns">
+        <button class="dos-btn" onclick="viewPDF('${f.id}','${f.name.replace(/'/g,"\\'")}','${(f.url||'').replace(/'/g,"\\'")}')">👁 Voir</button>
+        <a class="dos-btn drive" href="${f.url}" target="_blank">↗ Drive</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterDos(q){renderDos(allDos.filter(f=>f.name.toLowerCase().includes(q.toLowerCase())));}
+
+async function viewPDF(fileId,name,driveUrl){
+  const card=document.getElementById('viewer-card');
+  const wrap=document.getElementById('pdf-viewer');
+  document.getElementById('viewer-title').textContent='📄 '+name.replace('.pdf','');
+  wrap.innerHTML='<div style="color:#aaa;text-align:center;padding:20px;font-size:.82rem">⏳ Chargement du PDF...</div>';
+  card.style.display='block';
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+  try{
+    const bytes=await downloadPDF(fileId);
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const blobUrl=URL.createObjectURL(blob);
+    wrap.innerHTML=`
+      <div class="pv-toolbar">
+        <span class="pv-name">📄 ${name}</span>
+        <a href="${blobUrl}" download="${name}">⬇️ Télécharger</a>
+        <a href="${driveUrl}" target="_blank">↗ Drive</a>
+      </div>
+      <iframe src="${blobUrl}"></iframe>`;
+  }catch(e){
+    // Fallback : ouvrir dans Drive directement
+    wrap.innerHTML=`
+      <div class="pv-toolbar">
+        <span class="pv-name">📄 ${name}</span>
+        <a href="${driveUrl}" target="_blank">↗ Ouvrir dans Drive</a>
+      </div>
+      <iframe src="https://drive.google.com/file/d/${fileId}/preview"></iframe>`;
+  }
+}
+
+function closeViewer(){document.getElementById('viewer-card').style.display='none';document.getElementById('pdf-viewer').innerHTML='';}
+
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+function setStatus(id,type,msg){const e=document.getElementById(id);e.className='status '+type;e.textContent=msg;e.style.display='block';}
+function showProg(b,pct,txt){document.getElementById('pw'+b).style.display='block';document.getElementById('pf'+b).style.width=pct+'%';document.getElementById('pt'+b).textContent=txt;}
+function hideProg(b){document.getElementById('pw'+b).style.display='none';}
+function closeModal(){document.getElementById('modal-pick').classList.remove('open');}
+</script>
+</body>
+</html>
