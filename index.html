@@ -11,7 +11,7 @@
 <title>Cabinet Dr Jallouli Mohamed</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp }                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -169,21 +169,49 @@ function refreshList(box) {
 // ═══════════════════════════════════════════
 //  PDF BUILD
 // ═══════════════════════════════════════════
+// Compresse une image via Canvas avant de l'embarquer dans le PDF
+async function compressImage(file, maxW=1200, quality=0.75) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 async function fileToPDF(file, doc) {
   const {PDFDocument} = PDFLib;
   const ext = file.name.split('.').pop().toLowerCase();
-  const buf = await file.arrayBuffer();
+
   if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext) || file.type.startsWith('image/')) {
-    let img; try { img = await doc.embedJpg(buf); } catch { img = await doc.embedPng(buf); }
+    // Compresser avant d'embarquer
+    const compressed = await compressImage(file);
+    const buf = await compressed.arrayBuffer();
+    let img;
+    try { img = await doc.embedJpg(buf); }
+    catch { img = await doc.embedPng(await file.arrayBuffer()); }
     const pg = doc.addPage([595,842]);
     const {width:w, height:h} = pg.getSize();
     const sc = Math.min(w/img.width, h/img.height) * .92;
     pg.drawImage(img, {x:(w-img.width*sc)/2, y:(h-img.height*sc)/2, width:img.width*sc, height:img.height*sc});
+
   } else if (ext==='pdf' || file.type==='application/pdf') {
+    const buf = await file.arrayBuffer();
     const src = await PDFDocument.load(buf);
     const pages = await doc.copyPages(src, src.getPageIndices());
     pages.forEach(p => doc.addPage(p));
+
   } else {
+    const buf = await file.arrayBuffer();
     const text = await file.text().catch(() => 'Fichier joint : '+file.name);
     const pg = doc.addPage([595,842]); const {height:h} = pg.getSize();
     pg.drawText('Fichier : '+file.name, {x:40, y:h-60, size:14});
@@ -195,10 +223,13 @@ async function fileToPDF(file, doc) {
   }
 }
 
-async function buildPDF(entries, existingBytes=null) {
+async function buildPDF(entries, existingBytes=null, onProgress=null) {
   const {PDFDocument} = PDFLib;
   const doc = existingBytes ? await PDFDocument.load(existingBytes) : await PDFDocument.create();
-  for (const e of entries) await fileToPDF(e.file, doc);
+  for (let i=0; i<entries.length; i++) {
+    if (onProgress) onProgress(i+1, entries.length, entries[i].name);
+    await fileToPDF(entries[i].file, doc);
+  }
   return await doc.save();
 }
 
@@ -305,8 +336,11 @@ window.doAppend = async () => {
   showProg(2, 15, 'Téléchargement...');
   try {
     const existing = await fbDownload(selPDF.path);
-    showProg(2, 50, 'Ajout des fichiers...');
-    const pdfBytes = await buildPDF(files2, existing);
+    showProg(2, 45, 'Ajout des fichiers...');
+    const pdfBytes = await buildPDF(files2, existing, (cur, total, name) => {
+      const pct = Math.round(45 + (cur/total)*30);
+      showProg(2, pct, `📄 Fichier ${cur}/${total} : ${name}`);
+    });
     showProg(2, 80, 'Mise à jour sur Firebase...');
     await fbUpload(selPDF.path, pdfBytes);
     showProg(2, 100, '✅ Terminé !');
