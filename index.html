@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dr Jallouli">
+<meta name="theme-color" content="#0a3d6b">
+<title>Cabinet Dr Jallouli Mohamed</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+:root{--navy:#0a3d6b;--navy2:#0d4f8a;--gold:#c9a84c;--white:#f8f6f1;--card:#fff;--muted:#8a9bb0;--danger:#c0392b;--success:#1a7a4a;--border:#dde4ee;--orange:#e67e00;--supa:#3ecf8e}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:#1a2535;min-height:100vh;overscroll-behavior:none}
+
+/* HEADER */
+.header{background:var(--navy);padding:14px 18px;position:sticky;top:0;z-index:100;box-shadow:0 2px 14px rgba(10,61,107,.35)}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header h1{color:#fff;font-size:1.05rem;font-weight:600;line-height:1.3}
+.header h1 span{color:#b3d4ff;display:block;font-size:.74rem;font-weight:300;margin-top:1px}
+
+/* CONFIG BAR */
+.cfg-bar{background:#e8f4fc;padding:7px 16px;display:flex;align-items:center;gap:8px;border-bottom:.5px solid var(--border)}
+.cfg-bar-text{font-size:.76rem;color:var(--navy);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-cfg{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:5px 11px;font-size:.76rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0}
+
+/* SCREENS */
+.screen{display:none;padding:14px 14px 40px;max-width:520px;margin:0 auto}
+.screen.active{display:block}
+
+/* CARD */
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(10,61,107,.08);margin-bottom:14px;border:.5px solid var(--border)}
+.card-title{font-size:.93rem;font-weight:600;color:var(--navy);margin-bottom:13px;padding-bottom:9px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:7px}
+
+/* TABS */
+.tabs{display:flex;background:var(--card);border-radius:12px;padding:3px;margin-bottom:14px;box-shadow:0 2px 8px rgba(10,61,107,.08)}
+.tab{flex:1;padding:9px 3px;border-radius:9px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;text-align:center;line-height:1.3}
+.tab.active{background:var(--navy);color:#fff}
+
+/* FIELD */
+.field{margin-bottom:11px}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--navy);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:#fafbfd;color:#1a2535;outline:none;transition:border .2s}
+.field input:focus{border-color:var(--navy2);background:#fff}
+.field input[type=password]{letter-spacing:.1em}
+
+/* BUTTONS */
+.btn{width:100%;padding:12px;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:transform .15s;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:8px}
+.btn:active{transform:scale(.97)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}
+.btn-success{background:var(--success);color:#fff}
+.btn-supa{background:var(--supa);color:#fff}
+.btn-sm{padding:7px 13px;font-size:.76rem;border-radius:8px;margin-bottom:0;width:auto}
+.btn-danger-sm{background:#fde8e8;color:var(--danger);border:none;border-radius:7px;padding:5px 10px;font-size:.74rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* CAPTURE */
+.capture-zone{border:2px dashed var(--border);border-radius:12px;padding:18px 12px;text-align:center;margin-bottom:9px;background:#fafbfd;cursor:pointer;transition:all .18s}
+.capture-zone:active{background:#eef3fb;border-color:var(--navy)}
+.capture-zone .cz-icon{font-size:1.9rem;margin-bottom:5px}
+.capture-zone p{font-size:.8rem;color:var(--muted)}
+.capture-zone strong{color:var(--navy)}
+
+/* FILE LIST */
+.file-list{margin:6px 0}
+.file-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f7f9fc;border-radius:9px;margin-bottom:4px;border:.5px solid var(--border)}
+.file-thumb{width:36px;height:36px;border-radius:7px;background:#eef2f8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;overflow:hidden}
+.file-thumb img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:.76rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a2535}
+.file-size{font-size:.68rem;color:var(--muted)}
+.file-controls{display:flex;gap:3px}
+.btn-icon{width:27px;height:27px;border-radius:7px;border:none;display:flex;align-items:center;justify-content:center;font-size:.76rem;cursor:pointer;transition:transform .12s}
+.btn-icon:active{transform:scale(.86)}
+.btn-icon.up,.btn-icon.dn{background:#e8eef6;color:var(--navy)}
+.btn-icon.del{background:#fde8e8;color:var(--danger)}
+
+/* PROGRESS */
+.prog-wrap{display:none;margin:9px 0}
+.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--supa));border-radius:3px;transition:width .35s;width:0%}
+.prog-text{font-size:.73rem;color:var(--muted);text-align:center;margin-top:4px}
+
+/* STATUS */
+.status{padding:9px 12px;border-radius:9px;font-size:.8rem;font-weight:500;margin-top:7px;display:none;line-height:1.5}
+.status.ok{background:#e6f4ed;color:var(--success);display:block}
+.status.err{background:#fde8e8;color:var(--danger);display:block}
+.status.loading{background:#e8eef6;color:var(--navy);display:block}
+
+/* PDF SELECTED */
+.pdf-sel-bar{background:#e8eef6;color:var(--navy);border-radius:9px;padding:9px 12px;font-size:.8rem;font-weight:600;margin:8px 0;display:none}
+
+/* DOSSIER LIST */
+.dos-item{display:flex;align-items:center;gap:10px;padding:12px 13px;background:#fafbfd;border-radius:12px;margin-bottom:7px;border:.5px solid var(--border);cursor:pointer;transition:background .15s}
+.dos-item:active{background:#eef3fb}
+.dos-icon{font-size:1.5rem;flex-shrink:0}
+.dos-info{flex:1;min-width:0}
+.dos-name{font-size:.83rem;font-weight:600;color:#1a2535;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dos-meta{font-size:.7rem;color:var(--muted);margin-top:2px}
+.dos-arrow{font-size:.8rem;color:var(--navy);font-weight:600;flex-shrink:0}
+
+/* PDF VIEWER */
+.pdf-viewer-wrap{background:#222;border-radius:12px;overflow:hidden;margin-top:10px;min-height:200px;display:flex;align-items:center;justify-content:center}
+.pdf-viewer-wrap iframe{width:100%;height:70vh;border:none}
+.pdf-viewer-wrap .pv-msg{color:#aaa;font-size:.82rem;text-align:center;padding:20px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:300}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:22px 22px 0 0;padding:20px 16px 36px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto}
+.modal h3{font-size:.98rem;font-weight:600;color:var(--navy);margin-bottom:13px}
+.modal-pdf-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:#fafbfd;border-radius:10px;margin-bottom:6px;border:.5px solid var(--border);cursor:pointer;transition:background .14s}
+.modal-pdf-item:active{background:#eef3fb}
+.modal-pdf-name{font-size:.82rem;font-weight:600;color:#1a2535;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modal-pdf-date{font-size:.7rem;color:var(--muted)}
+.modal-select-btn{font-size:.74rem;color:var(--navy);font-weight:600;flex-shrink:0}
+
+/* HOWTO BOX */
+.howto{background:#f0fdf6;border:.5px solid var(--supa);border-radius:10px;padding:13px;margin-bottom:13px;font-size:.79rem;line-height:1.75;color:#064e38}
+.howto a{color:var(--navy);font-weight:600}
+.howto strong{color:#064e38}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:600}
+.badge-green{background:#d1fae5;color:#065f46}
+.badge-blue{background:#dbeafe;color:#1e3a8a}
+
+/* SPINNER */
+.spinner{width:17px;height:17px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FOOTER */
+.footer{text-align:center;padding:14px;font-size:.71rem;color:var(--muted);border-top:.5px solid var(--border);margin-top:4px}
+.footer strong{color:var(--navy)}
+
+input[type="file"]{display:none}
+
+/* CONFIG SCREEN */
+.cfg-screen-inner{padding:14px 14px 40px;max-width:520px;margin:0 auto;display:none}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <h1>🏥 Cabinet Dr Jallouli<span>Gestion Dossiers Patients</span></h1>
+    <span style="font-size:1.2rem">📋</span>
+  </div>
+</div>
+
+<!-- CONFIG BAR -->
+<div class="cfg-bar">
+  <span class="cfg-bar-text" id="cfg-status-bar">⚙️ Supabase non configuré</span>
+  <button class="btn-cfg" onclick="goToConfig()">⚙️ Config</button>
+</div>
+
+<!-- ════════════ ÉCRAN CONFIG ════════════ -->
+<div class="cfg-screen-inner" id="cfg-screen">
+  <div class="card">
+    <div class="card-title">☁️ Connexion Supabase <span class="badge badge-green">Gratuit &amp; Sécurisé</span></div>
+
+    <div class="howto">
+      <strong>📋 Étapes pour configurer (5 min) :</strong><br>
+      1. Allez sur <a href="https://supabase.com" target="_blank">supabase.com</a> → <strong>Start your project</strong><br>
+      2. Créez un projet → choisissez un nom et mot de passe<br>
+      3. Dans le projet → <strong>Settings → API</strong><br>
+      4. Copiez <strong>Project URL</strong> et <strong>anon public key</strong><br>
+      5. Allez dans <strong>Storage → New bucket</strong> → nom: <code>patients</code> → cochez <strong>Public</strong>
+    </div>
+
+    <div class="field">
+      <label>Supabase Project URL</label>
+      <input type="text" id="cfg-url" placeholder="https://xxxx.supabase.co" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Anon Public Key</label>
+      <input type="text" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIs..." autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Nom du bucket Storage</label>
+      <input type="text" id="cfg-bucket" placeholder="patients" value="patients">
+    </div>
+    <div class="field">
+      <label>Dossier (optionnel)</label>
+      <input type="text" id="cfg-folder" placeholder="DrJallouli" value="DrJallouli">
+    </div>
+
+    <button class="btn btn-supa" onclick="saveCfg()">💾 Enregistrer et connecter</button>
+    <button class="btn btn-outline" onclick="goToApp()">← Retour</button>
+    <div class="status" id="cfg-st"></div>
+  </div>
+</div>
+
+<!-- ════════════ APP PRINCIPALE ════════════ -->
+<div class="screen active" id="app-screen">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(0,this)">📄 Nouveau PDF</button>
+    <button class="tab" onclick="switchTab(1,this)">➕ Ajouter</button>
+    <button class="tab" onclick="switchTab(2,this)">📁 Dossiers</button>
+  </div>
+
+  <!-- ── TAB 0 : Nouveau PDF ── -->
+  <div id="tab-0">
+    <div class="card">
+      <div class="card-title">📄 Créer un dossier patient</div>
+      <div class="field"><label>Nom du patient</label><input type="text" id="nom" placeholder="Ben Ali Ahmed" autocomplete="off"></div>
+      <div class="field"><label>Numéro de dossier</label><input type="text" id="num" placeholder="2024-001" autocomplete="off"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📸 Fichiers</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">✔ Photos · PDF · Word · Texte · Tout fichier</div>
+      <div class="capture-zone" onclick="document.getElementById('fi1').click()">
+        <div class="cz-icon">📷</div>
+        <p><strong>Appuyer pour prendre une photo</strong><br>ou importer un fichier</p>
+      </div>
+      <input type="file" id="fi1" multiple accept="image/*,application/pdf,.doc,.docx,.txt" onchange="addFiles(this.files,1)">
+      <div class="file-list" id="fl1"></div>
+      <div class="prog-wrap" id="pw1"><div class="prog-bar"><div class="prog-fill" id="pf1"></div></div><div class="prog-text" id="pt1"></div></div>
+      <button class="btn btn-gold" id="btn-create" onclick="doCreatePDF()">✅ Créer PDF et envoyer</button>
+      <div class="status" id="s1"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB 1 : Ajouter ── -->
+  <div id="tab-1" style="display:none">
+    <div class="card">
+      <div class="card-title">➕ Ajouter à un dossier existant</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:11px">Choisissez le dossier patient, puis ajoutez de nouveaux fichiers.</p>
+      <button class="btn btn-outline" onclick="openPickModal()">☁️ Choisir un dossier patient</button>
+      <div class="pdf-sel-bar" id="pdf-sel"></div>
+    </div>
+    <div class="card" id="add-card" style="display:none">
+      <div class="card-title">📸 Nouveaux fichiers</div>
+      <div class="capture-zone" onclick="document.getElementById('fi2').click()">
+        <div class="cz-icon">📷</div>
+        <p><strong>Appuyer pour ajouter des fichiers</strong></p>
+      </div>
+      <input type="file" id="fi2" multiple accept="image/*,application/pdf,.doc,.docx,.txt" onchange="addFiles(this.files,2)">
+      <div class="file-list" id="fl2"></div>
+      <div class="prog-wrap" id="pw2"><div class="prog-bar"><div class="prog-fill" id="pf2"></div></div><div class="prog-text" id="pt2"></div></div>
+      <button class="btn btn-gold" onclick="doAppendPDF()">✅ Ajouter et mettre à jour</button>
+      <div class="status" id="s2"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB 2 : Dossiers ── -->
+  <div id="tab-2" style="display:none">
+    <div class="card">
+      <div class="card-title">📁 Tous les dossiers patients</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-navy btn-sm" onclick="loadDossiers()">🔄 Actualiser</button>
+        <input type="text" id="search-input" placeholder="🔍 Rechercher un patient..." style="flex:1;min-width:140px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-family:'DM Sans',sans-serif;outline:none" oninput="filterDossiers(this.value)">
+      </div>
+      <div id="dos-list"><p style="color:var(--muted);font-size:.82rem;text-align:center;padding:18px">Appuyez sur Actualiser.</p></div>
+    </div>
+
+    <!-- Visionneuse PDF inline -->
+    <div class="card" id="viewer-card" style="display:none">
+      <div class="card-title" id="viewer-title">📄 Visualisation</div>
+      <div class="pdf-viewer-wrap" id="pdf-viewer"></div>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px;width:auto" onclick="closeViewer()">✕ Fermer</button>
+    </div>
+  </div>
+
+  <div class="footer"><strong>Cabinet Dr Jallouli Mohamed</strong> · Gestion Dossiers Patients v4.0 · Supabase</div>
+</div>
+
+<!-- MODAL choix PDF -->
+<div class="modal-overlay" id="modal-pick">
+  <div class="modal">
+    <h3>☁️ Choisir un dossier patient</h3>
+    <div id="modal-pick-list"><p style="color:var(--muted);font-size:.82rem;text-align:center;padding:16px">⏳ Chargement...</p></div>
+    <button class="btn btn-outline" style="margin-top:12px" onclick="closeModal('modal-pick')">✕ Fermer</button>
+  </div>
+</div>
+
+<script>
+// ══════════════ CONFIG ══════════════
+const CFGK = 'jal_supa_v4';
+let C = JSON.parse(localStorage.getItem(CFGK)||'{}');
+let files1=[], files2=[], selPDF=null, allDossiers=[];
+
+window.onload = () => { applyCfgBar(); fillCfgForm(); };
+
+function applyCfgBar() {
+  const el = document.getElementById('cfg-status-bar');
+  el.textContent = C.url && C.key
+    ? '✅ Supabase : ' + (C.url||'').replace('https://','').split('.')[0] + ' / ' + (C.folder||'DrJallouli')
+    : '⚠️ Supabase non configuré — appuyez sur ⚙️';
+}
+
+function goToConfig() {
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('cfg-screen').style.display = 'block';
+}
+function goToApp() {
+  document.getElementById('cfg-screen').style.display = 'none';
+  document.getElementById('app-screen').classList.add('active');
+}
+function fillCfgForm() {
+  document.getElementById('cfg-url').value    = C.url    || '';
+  document.getElementById('cfg-key').value    = C.key    || '';
+  document.getElementById('cfg-bucket').value = C.bucket || 'patients';
+  document.getElementById('cfg-folder').value = C.folder || 'DrJallouli';
+}
+async function saveCfg() {
+  const url    = document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  const key    = document.getElementById('cfg-key').value.trim();
+  const bucket = document.getElementById('cfg-bucket').value.trim() || 'patients';
+  const folder = document.getElementById('cfg-folder').value.trim() || 'DrJallouli';
+  if (!url||!key) { setStatus('cfg-st','err','⚠️ URL et clé obligatoires.'); return; }
+  setStatus('cfg-st','loading','⏳ Test de connexion...');
+  try {
+    const r = await supaFetch(url, key, `storage/v1/bucket/${bucket}`, 'GET');
+    if (!r.ok && r.status!==200) throw new Error('Bucket introuvable. Vérifiez le nom.');
+    C = {url, key, bucket, folder};
+    localStorage.setItem(CFGK, JSON.stringify(C));
+    setStatus('cfg-st','ok','✅ Connexion réussie ! Supabase configuré.');
+    applyCfgBar();
+    setTimeout(goToApp, 1200);
+  } catch(e) {
+    // Try anyway if test fails (might be RLS)
+    C = {url, key, bucket, folder};
+    localStorage.setItem(CFGK, JSON.stringify(C));
+    setStatus('cfg-st','ok','✅ Configuration enregistrée.');
+    applyCfgBar();
+    setTimeout(goToApp, 1200);
+  }
+}
+
+// ══════════════ SUPABASE API ══════════════
+function supaFetch(url, key, path, method='GET', body=null, contentType=null) {
+  const headers = { 'apikey': key, 'Authorization': 'Bearer '+key };
+  if (contentType) headers['Content-Type'] = contentType;
+  return fetch(`${url}/${path}`, { method, headers, body });
+}
+function supa(path, method='GET', body=null, ct=null) {
+  return supaFetch(C.url, C.key, path, method, body, ct);
+}
+
+async function uploadFile(path, fileBytes, mimeType) {
+  const r = await fetch(`${C.url}/storage/v1/object/${C.bucket}/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': C.key,
+      'Authorization': 'Bearer '+C.key,
+      'Content-Type': mimeType,
+      'x-upsert': 'true'
+    },
+    body: fileBytes
+  });
+  if (!r.ok) { const e=await r.json(); throw new Error(e.error||e.message||'Erreur upload'); }
+  return await r.json();
+}
+
+async function downloadFile(path) {
+  const r = await fetch(`${C.url}/storage/v1/object/${C.bucket}/${path}`, {
+    headers: { 'apikey': C.key, 'Authorization': 'Bearer '+C.key }
+  });
+  if (!r.ok) throw new Error('Impossible de télécharger');
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+async function listFiles() {
+  const r = await fetch(`${C.url}/storage/v1/object/list/${C.bucket}`, {
+    method: 'POST',
+    headers: {
+      'apikey': C.key,
+      'Authorization': 'Bearer '+C.key,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ prefix: (C.folder||'DrJallouli')+'/', limit: 200, sortBy: {column:'updated_at', order:'desc'} })
+  });
+  if (!r.ok) throw new Error('Erreur liste fichiers');
+  return await r.json();
+}
+
+function getPublicURL(path) {
+  return `${C.url}/storage/v1/object/public/${C.bucket}/${path}`;
+}
+
+// ══════════════ TABS ══════════════
+function switchTab(idx, el) {
+  [0,1,2].forEach(i => document.getElementById('tab-'+i).style.display = i===idx?'block':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if (idx===2) loadDossiers();
+}
+
+// ══════════════ FILES ══════════════
+function addFiles(fileList, box) {
+  const arr = box===1?files1:files2;
+  const el  = document.getElementById('fl'+box);
+  Array.from(fileList).forEach(f => {
+    const entry = {file:f, name:f.name, dataUrl:null};
+    arr.push(entry);
+    renderItem(el, arr, arr.length-1, box);
+  });
+}
+function renderItem(container, arr, idx, box) {
+  const f = arr[idx];
+  const sz = f.file.size<1048576?(f.file.size/1024).toFixed(0)+' Ko':(f.file.size/1048576).toFixed(1)+' Mo';
+  const d = document.createElement('div');
+  d.className='file-item'; d.id='fi-'+box+'-'+idx;
+  d.innerHTML=`<div class="file-thumb" id="ft-${box}-${idx}"></div>
+    <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${sz}</div></div>
+    <div class="file-controls">
+      <button class="btn-icon up" onclick="mv(${box},${idx},-1)">▲</button>
+      <button class="btn-icon dn" onclick="mv(${box},${idx},+1)">▼</button>
+      <button class="btn-icon del" onclick="rm(${box},${idx})">✕</button>
+    </div>`;
+  container.appendChild(d);
+  const th = document.getElementById('ft-'+box+'-'+idx);
+  if (f.file.type.startsWith('image/')) {
+    const r=new FileReader(); r.onload=e=>{f.dataUrl=e.target.result;th.innerHTML=`<img src="${e.target.result}">`;}; r.readAsDataURL(f.file);
+  } else { th.textContent = f.file.type==='application/pdf'?'📄':'📎'; }
+}
+function refreshList(box) {
+  const arr=box===1?files1:files2;
+  document.getElementById('fl'+box).innerHTML='';
+  arr.forEach((_,i)=>renderItem(document.getElementById('fl'+box),arr,i,box));
+}
+function mv(box,idx,d){const a=box===1?files1:files2;const j=idx+d;if(j<0||j>=a.length)return;[a[idx],a[j]]=[a[j],a[idx]];refreshList(box);}
+function rm(box,idx){(box===1?files1:files2).splice(idx,1);refreshList(box);}
+
+// ══════════════ PDF BUILD ══════════════
+async function fileToPDF(file, doc) {
+  const {PDFDocument} = PDFLib;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const buf = await file.arrayBuffer();
+  if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)||file.type.startsWith('image/')) {
+    let img; try{img=await doc.embedJpg(buf);}catch{img=await doc.embedPng(buf);}
+    const pg=doc.addPage([595,842]);const{width:w,height:h}=pg.getSize();
+    const sc=Math.min(w/img.width,h/img.height)*.92;
+    pg.drawImage(img,{x:(w-img.width*sc)/2,y:(h-img.height*sc)/2,width:img.width*sc,height:img.height*sc});
+  } else if (ext==='pdf'||file.type==='application/pdf') {
+    const src=await PDFDocument.load(buf);const pages=await doc.copyPages(src,src.getPageIndices());pages.forEach(p=>doc.addPage(p));
+  } else {
+    const text=await file.text().catch(()=>'Fichier joint : '+file.name);
+    const pg=doc.addPage([595,842]);const{height:h}=pg.getSize();
+    pg.drawText('Fichier : '+file.name,{x:40,y:h-60,size:14});
+    let y=h-90;
+    for(const line of text.split('\n').slice(0,55)){if(y<40)break;pg.drawText(line.substring(0,95),{x:40,y,size:10});y-=14;}
+  }
+}
+async function buildPDF(entries, existingBytes=null) {
+  const {PDFDocument}=PDFLib;
+  const doc=existingBytes?await PDFDocument.load(existingBytes):await PDFDocument.create();
+  for(const e of entries) await fileToPDF(e.file, doc);
+  return await doc.save();
+}
+
+// ══════════════ BOX 1 : Créer ══════════════
+async function doCreatePDF() {
+  const nom=document.getElementById('nom').value.trim();
+  const num=document.getElementById('num').value.trim();
+  if (!nom){alert('Nom du patient obligatoire.');return;}
+  if (!num){alert('Numéro de dossier obligatoire.');return;}
+  if (!files1.length){alert('Ajoutez au moins un fichier.');return;}
+  if (!C.url||!C.key){alert('Configurez Supabase d\'abord (⚙️).');goToConfig();return;}
+
+  const btn=document.getElementById('btn-create');
+  btn.disabled=true; btn.innerHTML='<div class="spinner"></div> En cours...';
+  setStatus('s1','loading','⏳ Génération du PDF...');
+  showProg(1,15,'Conversion des fichiers...');
+  try {
+    const pdfBytes = await buildPDF(files1);
+    showProg(1,55,'Envoi sur Supabase...');
+    const fname = num+'_'+nom.replace(/\s+/g,'_')+'.pdf';
+    const path  = (C.folder||'DrJallouli')+'/'+fname;
+    await uploadFile(path, pdfBytes, 'application/pdf');
+    showProg(1,100,'✅ Terminé !');
+    setStatus('s1','ok','✅ PDF enregistré : '+fname);
+    files1=[]; document.getElementById('fl1').innerHTML='';
+    document.getElementById('nom').value=''; document.getElementById('num').value='';
+    setTimeout(()=>hideProg(1),1500);
+  } catch(e){ setStatus('s1','err','❌ '+e.message); hideProg(1); }
+  btn.disabled=false; btn.innerHTML='✅ Créer PDF et envoyer';
+}
+
+// ══════════════ BOX 2 : Ajouter ══════════════
+async function openPickModal() {
+  if (!C.url||!C.key){alert('Configurez Supabase d\'abord.');goToConfig();return;}
+  document.getElementById('modal-pick-list').innerHTML='<p style="color:var(--muted);text-align:center;padding:14px">⏳ Chargement...</p>';
+  openModal('modal-pick');
+  try {
+    const items = await listFiles();
+    const pdfs  = (items||[]).filter(f=>f.name&&f.name.endsWith('.pdf'));
+    if (!pdfs.length){document.getElementById('modal-pick-list').innerHTML='<p style="color:var(--muted);text-align:center;padding:14px">Aucun dossier trouvé.</p>';return;}
+    document.getElementById('modal-pick-list').innerHTML = pdfs.map(f=>{
+      const date = f.updated_at ? new Date(f.updated_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+      const path = (C.folder||'DrJallouli')+'/'+f.name;
+      return `<div class="modal-pdf-item" onclick="pickPDF('${path}','${f.name}')">
+        <span style="font-size:1.4rem">📄</span>
+        <div style="flex:1;min-width:0"><div class="modal-pdf-name">${f.name}</div><div class="modal-pdf-date">${date}</div></div>
+        <span class="modal-select-btn">Choisir ›</span>
+      </div>`;
+    }).join('');
+  } catch(e){document.getElementById('modal-pick-list').innerHTML=`<p style="color:var(--danger);padding:12px;font-size:.8rem">❌ ${e.message}</p>`;}
+}
+
+function pickPDF(path, name) {
+  selPDF={path,name};
+  closeModal('modal-pick');
+  const el=document.getElementById('pdf-sel');
+  el.style.display='block'; el.textContent='📄 Sélectionné : '+name;
+  document.getElementById('add-card').style.display='block';
+}
+
+async function doAppendPDF() {
+  if (!selPDF){alert('Choisissez un dossier patient.');return;}
+  if (!files2.length){alert('Ajoutez au moins un fichier.');return;}
+  setStatus('s2','loading','⏳ Téléchargement du PDF existant...');
+  showProg(2,15,'Téléchargement...');
+  try {
+    const existing = await downloadFile(selPDF.path);
+    showProg(2,50,'Ajout des fichiers...');
+    const pdfBytes = await buildPDF(files2, existing);
+    showProg(2,80,'Mise à jour sur Supabase...');
+    await uploadFile(selPDF.path, pdfBytes, 'application/pdf');
+    showProg(2,100,'✅ Terminé !');
+    setStatus('s2','ok','✅ PDF mis à jour : '+selPDF.name);
+    files2=[]; document.getElementById('fl2').innerHTML='';
+    selPDF=null;
+    document.getElementById('pdf-sel').style.display='none';
+    document.getElementById('add-card').style.display='none';
+    setTimeout(()=>hideProg(2),1500);
+  } catch(e){ setStatus('s2','err','❌ '+e.message); hideProg(2); }
+}
+
+// ══════════════ DOSSIERS + VIEWER ══════════════
+async function loadDossiers() {
+  const el=document.getElementById('dos-list');
+  el.innerHTML='<p style="color:var(--muted);text-align:center;padding:16px">⏳ Chargement...</p>';
+  if (!C.url||!C.key){el.innerHTML='<p style="color:var(--danger);text-align:center;padding:12px;font-size:.82rem">⚠️ Configurez Supabase d\'abord.</p>';return;}
+  try {
+    const items = await listFiles();
+    allDossiers = (items||[]).filter(f=>f.name&&f.name.endsWith('.pdf'));
+    renderDossiers(allDossiers);
+  } catch(e){ el.innerHTML=`<p style="color:var(--danger);text-align:center;padding:12px;font-size:.82rem">❌ ${e.message}</p>`; }
+}
+
+function renderDossiers(list) {
+  const el=document.getElementById('dos-list');
+  if (!list.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">Aucun dossier patient.</p>';return;}
+  el.innerHTML = list.map(f=>{
+    const path = (C.folder||'DrJallouli')+'/'+f.name;
+    const date = f.updated_at ? new Date(f.updated_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+    const size = f.metadata?.size ? (f.metadata.size/1024<1024?(f.metadata.size/1024).toFixed(0)+' Ko':(f.metadata.size/1048576).toFixed(1)+' Mo') : '';
+    return `<div class="dos-item" onclick="viewPDF('${path}','${f.name}')">
+      <div class="dos-icon">📄</div>
+      <div class="dos-info">
+        <div class="dos-name">${f.name.replace('.pdf','')}</div>
+        <div class="dos-meta">${date}${size?' · '+size:''}</div>
+      </div>
+      <div class="dos-arrow">Voir ›</div>
+    </div>`;
+  }).join('');
+}
+
+function filterDossiers(q) {
+  const filtered = allDossiers.filter(f=>f.name.toLowerCase().includes(q.toLowerCase()));
+  renderDossiers(filtered);
+}
+
+async function viewPDF(path, name) {
+  const card = document.getElementById('viewer-card');
+  const wrap  = document.getElementById('pdf-viewer');
+  const title = document.getElementById('viewer-title');
+  title.textContent = '📄 '+name.replace('.pdf','');
+  wrap.innerHTML = '<div class="pv-msg">⏳ Chargement du PDF...</div>';
+  card.style.display='block';
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+
+  try {
+    // Essayer URL publique d'abord
+    let pdfUrl = getPublicURL(path);
+    // Vérifier si accessible
+    const test = await fetch(pdfUrl, {method:'HEAD'}).catch(()=>null);
+    if (!test || !test.ok) {
+      // Télécharger et créer blob URL
+      const bytes = await downloadFile(path);
+      const blob = new Blob([bytes],{type:'application/pdf'});
+      pdfUrl = URL.createObjectURL(blob);
+    }
+    wrap.innerHTML = `
+      <div style="width:100%;background:#333;padding:8px;display:flex;align-items:center;justify-content:space-between">
+        <span style="color:#fff;font-size:.76rem;font-weight:600">📄 ${name}</span>
+        <a href="${pdfUrl}" target="_blank" style="color:var(--supa);font-size:.74rem;font-weight:600;text-decoration:none">⬇️ Télécharger</a>
+      </div>
+      <iframe src="${pdfUrl}" style="width:100%;height:70vh;border:none"></iframe>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="pv-msg" style="color:#f87171">❌ ${e.message}</div>`;
+  }
+}
+
+function closeViewer() {
+  document.getElementById('viewer-card').style.display='none';
+  document.getElementById('pdf-viewer').innerHTML='';
+}
+
+// ══════════════ HELPERS ══════════════
+function setStatus(id,type,msg){const e=document.getElementById(id);e.className='status '+type;e.textContent=msg;e.style.display='block';}
+function showProg(b,pct,txt){document.getElementById('pw'+b).style.display='block';document.getElementById('pf'+b).style.width=pct+'%';document.getElementById('pt'+b).textContent=txt;}
+function hideProg(b){document.getElementById('pw'+b).style.display='none';}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+</script>
+</body>
+</html>
