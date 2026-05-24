@@ -364,22 +364,22 @@ function toBase64(bytes){
   return btoa(b);
 }
 
-// Upload en chunks pour éviter la limite URL
-async function uploadInChunks(action, extraParams, b64Content){
-  const CHUNK = 50000; // 50KB par chunk en base64
+// Upload en chunks — noms d'actions sans underscore
+async function uploadInChunks(type, extraParams, b64Content){
+  const CHUNK = 60000;
   const total = Math.ceil(b64Content.length / CHUNK);
-  // Initier l'upload
-  const initRes = await jsonp({action: action+'_init', total: String(total), ...extraParams});
+  // 1. Démarrer
+  const initRes = await jsonp({action:'startupload', type, total:String(total), ...extraParams});
   if(initRes.error) throw new Error(initRes.error);
   const uploadId = initRes.uploadId;
-  // Envoyer les chunks
+  // 2. Envoyer les morceaux
   for(let i=0;i<total;i++){
     const chunk = b64Content.slice(i*CHUNK,(i+1)*CHUNK);
-    const r = await jsonp({action:'chunk', uploadId, index:String(i), data:chunk});
-    if(r.error) throw new Error(r.error);
+    const r = await jsonp({action:'sendchunk', uploadId, index:String(i), data:chunk});
+    if(r && r.error) throw new Error(r.error);
   }
-  // Finaliser
-  const finalRes = await jsonp({action: action+'_finish', uploadId, ...extraParams});
+  // 3. Finaliser
+  const finalRes = await jsonp({action:'finishupload', uploadId, ...extraParams});
   return finalRes;
 }
 
@@ -427,7 +427,7 @@ async function doCreate(){
     showProg(1,65,'Envoi sur Google Drive...');
     const fname=num+'_'+nom.replace(/\s+/g,'_')+'.pdf';
     const b64=toBase64(pdfBytes);
-    const res=await uploadInChunks('upload', {filename:fname}, b64);
+    const res=await uploadInChunks('new', {filename:fname}, b64);
     if(res.error) throw new Error(res.error);
     showProg(1,100,'✅ Terminé !');
     setStatus('s1','ok','✅ PDF enregistré sur Drive : '+fname);
@@ -479,7 +479,7 @@ async function doAppend(){
     });
     showProg(2,80,'Mise à jour sur Drive...');
     const b64=toBase64(pdfBytes);
-    const res=await uploadInChunks('update', {fileId:selPDF.id}, b64);
+    const res=await uploadInChunks('update', {fileid:selPDF.id}, b64);
     if(res.error) throw new Error(res.error);
     showProg(2,100,'✅ Terminé !');
     setStatus('s2','ok','✅ PDF mis à jour : '+selPDF.name);
