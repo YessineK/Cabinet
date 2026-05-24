@@ -356,76 +356,56 @@ async function fileToPDFCompressed(file,doc,quality=0.45,maxW=800){
 }
 
 // ══════════════════════════════════════
-//  APPS SCRIPT API
-//  GET  → list, download (JSONP)
-//  POST → upload, update (fetch no-cors + polling)
+//  APPS SCRIPT API — JSONP + Chunks
 // ══════════════════════════════════════
 function toBase64(bytes){
-  let b='';const chunk=8192;
+  let b=''; const chunk=8192;
   for(let i=0;i<bytes.length;i+=chunk) b+=String.fromCharCode(...bytes.subarray(i,i+chunk));
   return btoa(b);
 }
 
-// JSONP pour GET (list + download)
 function jsonp(params){
   return new Promise((resolve,reject)=>{
-    const cb='cb'+Date.now()+Math.random().toString(36).slice(2);
-    const qs=Object.entries({...params,cb})
-      .map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+    const all={...params, folderId:FOLDER_ID, callback:cb};
+    const qs=Object.entries(all).map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');
     const s=document.createElement('script');
     s.src=SCRIPT_URL+'?'+qs;
-    const timer=setTimeout(()=>{
-      delete window[cb];
-      if(s.parentNode) s.parentNode.removeChild(s);
-      reject(new Error('Timeout — vérifiez le script Google'));
-    }, 30000);
+    const timer=setTimeout(()=>{delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);reject(new Error('Timeout'));},30000);
     window[cb]=(data)=>{
-      clearTimeout(timer);
-      delete window[cb];
-      if(s.parentNode) s.parentNode.removeChild(s);
-      if(data && data.error) reject(new Error(data.error));
-      else resolve(data);
+      clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);
+      if(data&&data.error) reject(new Error(data.error)); else resolve(data);
     };
     s.onerror=()=>{clearTimeout(timer);reject(new Error('Erreur réseau'));};
     document.body.appendChild(s);
   });
 }
 
-// POST pour upload (contenu trop grand pour URL)
-async function postToScript(payload){
-  const r = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type':'text/plain'},
-    body: JSON.stringify(payload)
-  });
-  // no-cors = pas de réponse lisible → on attend 3s puis on vérifie via list
-  await new Promise(res=>setTimeout(res,3000));
-  return {ok:true};
-}
+async function scriptGet(){ return jsonp({action:'list'}); }
 
-async function scriptGet(){
-  const data = await jsonp({a:'list'});
-  // adapter les clés courtes vers longues
-  if(data.files) data.files = data.files.map(f=>({id:f.i,name:f.n,url:f.u,date:f.d}));
-  return data;
-}
-
-async function downloadPDF(fileId){
-  const data = await jsonp({a:'dl',id:fileId});
-  if(!data.c) throw new Error('PDF vide ou introuvable');
-  return Uint8Array.from(atob(data.c),c=>c.charCodeAt(0));
-}
-
-async function uploadInChunks(type, extraParams, b64){
-  if(type==='new'){
-    await postToScript({a:'upload', n:extraParams.filename, c:b64});
-  } else {
-    await postToScript({a:'update', id:extraParams.fileid, c:b64});
+async function downloadPDF(fileId, onProgress){
+  const first=await jsonp({action:'download',fileId,chunk:'0'});
+  let b64=first.chunk;
+  if(onProgress) onProgress(1,first.total);
+  for(let i=1;i<first.total;i++){
+    const r=await jsonp({action:'download',fileId,chunk:String(i)});
+    b64+=r.chunk;
+    if(onProgress) onProgress(i+1,first.total);
   }
-  return {ok:true};
+  return Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
 }
 
+async function uploadChunked(b64, filename, fileId, onProgress){
+  const SZ=50000;
+  const total=Math.ceil(b64.length/SZ);
+  const uid='u'+Date.now()+Math.random().toString(36).slice(2,6);
+  for(let i=0;i<total;i++){
+    await jsonp({action:'upload_chunk',uploadId:uid,chunk:String(i),total:String(total),content:b64.substring(i*SZ,(i+1)*SZ),filename});
+    if(onProgress) onProgress(i+1,total);
+  }
+  if(fileId) return jsonp({action:'update_finish',uploadId:uid,fileId});
+  return jsonp({action:'upload_finish',uploadId:uid,filename});
+}
 // ══════════════════════════════════════
 //  BOX 1 — Créer PDF
 // ══════════════════════════════════════
@@ -445,8 +425,8 @@ async function doCreate(){
     showProg(1,65,'Envoi sur Google Drive...');
     const fname=num+'_'+nom.replace(/\s+/g,'_')+'.pdf';
     const b64=toBase64(pdfBytes);
-    const res=await uploadInChunks('new', {filename:fname}, b64);
-    if(res.error) throw new Error(res.error);
+    const res=await uploadChunked(b64,fname,null,(cur,tot)=>{showProg(1,Math.round(65+(cur/tot)*30),'☁️ Envoi '+cur+'/'+tot+'...');});
+    if(res&&res.error) throw new Error(res.error);
     showProg(1,100,'✅ Terminé !');
     setStatus('s1','ok','✅ PDF enregistré sur Drive : '+fname);
     files1=[];document.getElementById('fl1').innerHTML='';
@@ -490,15 +470,15 @@ async function doAppend(){
   if(!files2.length){alert('Ajoutez au moins un fichier.');return;}
   setStatus('s2','loading','⏳ Téléchargement du PDF existant...');showProg(2,10,'Téléchargement...');
   try{
-    const existing=await downloadPDF(selPDF.id);
+    const existing=await downloadPDF(selPDF.id,(cur,tot)=>{showProg(2,Math.round(10+(cur/tot)*25),'⬇️ Téléchargement '+cur+'/'+tot+'...');});
     showProg(2,40,'Ajout des fichiers...');
     const pdfBytes=await buildPDF(files2,existing,(cur,total,name)=>{
       showProg(2,Math.round(40+(cur/total)*35),'📄 '+cur+'/'+total+' : '+name);
     });
     showProg(2,80,'Mise à jour sur Drive...');
     const b64=toBase64(pdfBytes);
-    const res=await uploadInChunks('update', {fileid:selPDF.id}, b64);
-    if(res.error) throw new Error(res.error);
+    const res=await uploadChunked(b64,selPDF.name,selPDF.id,(cur,tot)=>{showProg(2,Math.round(80+(cur/tot)*15),'☁️ Envoi '+cur+'/'+tot+'...');});
+    if(res&&res.error) throw new Error(res.error);
     showProg(2,100,'✅ Terminé !');
     setStatus('s2','ok','✅ PDF mis à jour : '+selPDF.name);
     files2=[];document.getElementById('fl2').innerHTML='';
@@ -547,17 +527,31 @@ async function viewPDF(fileId,name,driveUrl){
   const card=document.getElementById('viewer-card');
   const wrap=document.getElementById('pdf-viewer');
   document.getElementById('viewer-title').textContent='📄 '+name.replace('.pdf','');
-  // Utiliser Google Drive preview embed — fonctionne sur tous les appareils sans téléchargement
-  wrap.innerHTML=`
-    <div class="pv-toolbar">
-      <span class="pv-name">📄 ${name}</span>
-      <a href="${driveUrl}" target="_blank">↗ Ouvrir dans Drive</a>
-    </div>
-    <iframe src="https://drive.google.com/file/d/${fileId}/preview" allowfullscreen></iframe>`;
+  wrap.innerHTML='<div style="color:#aaa;text-align:center;padding:20px;font-size:.82rem">⏳ Chargement 0/0...</div>';
   card.style.display='block';
   card.scrollIntoView({behavior:'smooth',block:'start'});
+  try{
+    const bytes=await downloadPDF(fileId,(cur,tot)=>{
+      wrap.innerHTML='<div style="color:#aaa;text-align:center;padding:20px;font-size:.82rem">⏳ Chargement '+cur+'/'+tot+'...</div>';
+    });
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const blobUrl=URL.createObjectURL(blob);
+    wrap.innerHTML=`
+      <div class="pv-toolbar">
+        <span class="pv-name">📄 ${name}</span>
+        <a href="${blobUrl}" download="${name}">⬇️ Télécharger</a>
+        <a href="${driveUrl}" target="_blank">↗ Drive</a>
+      </div>
+      <iframe src="${blobUrl}"></iframe>`;
+  }catch(e){
+    wrap.innerHTML=`
+      <div class="pv-toolbar">
+        <span class="pv-name">📄 ${name}</span>
+        <a href="${driveUrl}" target="_blank">↗ Ouvrir dans Drive</a>
+      </div>
+      <iframe src="https://drive.google.com/file/d/${fileId}/preview" allowfullscreen></iframe>`;
+  }
 }
-
 function closeViewer(){document.getElementById('viewer-card').style.display='none';document.getElementById('pdf-viewer').innerHTML='';}
 
 // ══════════════════════════════════════
